@@ -1,0 +1,98 @@
+---
+version: "3"
+
+services:
+  # jet:
+  #   environment:
+  #     JET_LICENSE_KEY: JET_ENT#25Nodes#EkBfCUG9YwSWgj0AXKliNJPMDmbdO5yQH2u6q81ZTn60011090119302105121011100010609010000201000
+  #   image: hazelcast/hazelcast-jet-enterprise
+  #   ports:
+  #     - "5701:5701"
+  jet-job-embedded:
+    build:
+      context: jet-audio-monitor
+
+  hz-mancenter:
+    image: hazelcast/management-center 
+    ports:
+      - "8080:8080"
+#   grafana:
+#     build:
+#       context: docker-images/grafana-plus
+#     container_name: grafana
+#     ports:
+#       - 3000:3000
+
+#     networks:
+#       - grafanite-net
+#     volumes:
+#       - grafanite-volume
+
+#   hazelcast-mancenter:
+#     build:
+#       context: docker-images/hazelcast-mancenter
+#     container_name: hazelcast-mancenter
+#     ports:
+#       - 8080:8080
+#     networks:
+#       - grafanite-net
+
+#   jet-mancenter:
+#     build:
+#       context: docker-images/jet-mancenter
+#     container_name: jet-mancenter
+#     ports:
+#       - 8081:8081
+#     depends_on:
+#       - jet
+#     networks:
+#       - grafanite-net
+
+#   jet:
+#     build:
+#       context: code
+#     container_name: jet
+#     command: >
+#       java -cp /opt/telecom-churn-jet-demo/churn-analytics-jet-cluster/target/churn-analytics-jet-cluster-1.0-SNAPSHOT.jar
+#       -Dhazelcast.config=/opt/telecom-churn-jet-demo/hazelcast.xml
+#       -Dchurn.contract.file=/opt/telecom-churn-jet-demo/ContractData.csv
+#       -Dchurn.model.file=/opt/telecom-churn-jet-demo/churnPmmlModel.pmml
+#       -Dgraphite.host=graphite
+#       -Dgraphite.port=2003
+#       com.hazelcast.demo.Server
+
+#     ports:
+#       - 5701:5701
+#     networks:
+#       - grafanite-net
+
+#   call-simulator:
+#     image: telecom-churn-jet-demo_jet
+#     container_name: call-simulator
+#     command: >
+#       java -cp /opt/telecom-churn-jet-demo/call-simulator/target/call-simulator-1.0-SNAPSHOT.jar
+#       -Dhazelcast.client.config=/opt/telecom-churn-jet-demo/hazelcast-client.xml
+#       com.hazelcast.demo.CallSimulator2
+
+#     depends_on:
+#       - jet
+#     networks:
+#       - grafanite-net
+
+#   dashboard:
+#     image: telecom-churn-jet-demo_jet
+#     container_name: dashboard
+#     command: mvn -f /opt/telecom-churn-jet-demo/churn-dashboard/pom.xml spring-boot:run -Dspring-boot.run.jvmArguments="-Dhazelcast.client.config=../hazelcast-client.xml"
+
+#     depends_on:
+#       - jet
+#     ports:
+#       - 8181:8181
+#     networks:
+#       - grafanite-net
+
+# volumes:
+#   grafanite-volume:
+#     external: true
+# networks:
+#   grafanite-net:
