@@ -2,15 +2,15 @@
 version: "3"
 
 services:
-  # jet:
-  #   environment:
-  #     JET_LICENSE_KEY: JET_ENT#25Nodes#EkBfCUG9YwSWgj0AXKliNJPMDmbdO5yQH2u6q81ZTn60011090119302105121011100010609010000201000
-  #   image: hazelcast/hazelcast-jet-enterprise
-  #   ports:
-  #     - "5701:5701"
-  jet-job-embedded:
+  jet:
     build:
       context: jet-audio-monitor
+    command: ["java", "-cp", "target/jet-audio-monitor-1.0-SNAPSHOT.jar:target/dependency/*", "-Xmx2500m", "-Xms2500m", "-Dhazelcast.config=./hazelcast.yaml", "com.sorintlab.jet.data.acquisition.audio.MonitoringJob"]
+
+  audio-event-stream:
+    build:
+      context: jet-audio-monitor
+    command: ["java", "-cp", "target/jet-audio-monitor-1.0-SNAPSHOT.jar:target/dependency/*", "-Xmx250m", "-Xms250m", "-Dhazelcast.client.config=./hazelcast-client.yaml", "com.sorintlab.tone.Generator"]
 
   hz-mancenter:
     image: hazelcast/management-center 

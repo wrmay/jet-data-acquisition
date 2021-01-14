@@ -1,5 +1,5 @@
 hazelcast:
-  cluster-name: dev
+  cluster-name: jet
   license-key: JET_ENT#25Nodes#EkBfCUG9YwSWgj0AXKliNJPMDmbdO5yQH2u6q81ZTn60011090119302105121011100010609010000201000
   map:
     audio:
