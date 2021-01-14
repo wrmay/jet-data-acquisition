@@ -1,8 +1,8 @@
 # Now
-- put the generator in docker-compose
-  - change it to use an external client config
-  - pull the command out of the Dockerfile and provide the java start command in docker-compose.yaml for jet and generator
 - set up FFT task in python
+  - update the pipeline to map short[] to string and add mapUsingPython stage
+  - decode the returned strings
+- add some alerts
 - make the audio parameters variable
 - send outputs to prometheus so they can be visualized
 - output visualization
@@ -10,8 +10,12 @@
 - update the data generator to write timestamped audio files
 - move generator to rasberry pi (will need to expose ports on laptop)
   could even consider moving the whole thing to a server in my house
+
+- main presentation
+  - add a bit about IMDG under Jet and properties of maps
 - architecture diagram
 - make sure telco demo is working
+- set up a learner project
 
 # Later
 
