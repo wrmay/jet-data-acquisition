@@ -2,20 +2,20 @@
 version: "3"
 
 services:
-  jet-console:
+  jet-audio-monitor:
     build:
       context: jet-audio-monitor
-    command: ["echo", "use 'docker-compose run jet-console bash' to execute the jet console"]
+    command: ["java", "-cp", "target/jet-audio-monitor-1.0-SNAPSHOT.jar", "-Xmx2g", "-Xms2g", "com.sorintlab.jet.data.acquisition.audio.MonitoringJob"]
 
-  jet-server:
-    build:
-      context: jet-server
-    hostname: jet1
+  # jet-server:
+  #   build:
+  #     context: jet-server
+  #   hostname: jet1
 
-  audio-event-stream:
-    build:
-      context: jet-audio-monitor
-    command: ["java", "-cp", "target/jet-audio-monitor-1.0-SNAPSHOT.jar:target/dependency/*", "-Xmx250m", "-Xms250m", "-Dhazelcast.client.config=./hazelcast-client.yaml", "com.sorintlab.tone.Generator"]
+  # audio-event-stream:
+  #   build:
+  #     context: jet-audio-monitor
+  #   command: ["java", "-cp", "target/jet-audio-monitor-1.0-SNAPSHOT.jar:target/dependency/*", "-Xmx250m", "-Xms250m", "-Dhazelcast.client.config=./hazelcast-client.yaml", "com.sorintlab.tone.Generator"]
 
   hz-mancenter:
     image: hazelcast/management-center 

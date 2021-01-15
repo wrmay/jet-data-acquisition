@@ -1,11 +1,5 @@
 # Now
-- integrate the python pipeline
-  - get frigging python working!
-    - does it have to be absolute path ? NO
-    - do I need guava ?  NO
-    - does it need to be on the cp ? NO
-    - is it required to set the main class ? NO
-    - does it have to be 4.3 ? NO
+- produce a combined server and job
 - add some alerts
 - make the audio parameters variable
 - add jetmc
@@ -23,6 +17,7 @@
 - set up a learner project
 
 # Later
+- separate out the jet job from the jet servers
 - make it a multi-node jet cluster
 - lock down the versions of images
 
@@ -30,3 +25,12 @@
 - fix the the problem with the jet jobs pane of mc
 - look for a better implementation of RMS that doesn't involve constructing so many temporary objects
 - maven based containers should not be using root user
+
+# Notes
+- integrate the python pipeline
+  - get frigging python working!
+    - does it have to be absolute path ? NO
+    - do I need guava ?  NO
+    - does it need to be on the cp ? NO
+    - is it required to set the main class ? NO
+    - does it have to be 4.3 ? NO
