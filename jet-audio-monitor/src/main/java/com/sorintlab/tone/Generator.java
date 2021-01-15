@@ -67,12 +67,12 @@ public class Generator
 
         double wave1Freq = 8000;
         short wave1Amp = Short.MAX_VALUE;
-        double wave1Weight = 0.4d;
+        double wave1Weight = 0.5d;
         double wave2Freq = 800;
         short wave2Amp = Short.MAX_VALUE;
-        double wave2Weight = 0.3d;
+        double wave2Weight = 0.5d;
         short noiseAmp = Short.MAX_VALUE;
-        double noiseWeight = 0.3d;
+        double noiseWeight = 0.0d;
 
         int samples = (int) (durationSecs * sampleRate);
 

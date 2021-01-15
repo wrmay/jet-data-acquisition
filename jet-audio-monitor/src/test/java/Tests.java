@@ -1,3 +1,4 @@
+import com.google.gson.Gson;
 import com.sorintlab.jet.data.acquisition.audio.MonitoringJob;
 import com.sorintlab.tone.Generator;
 import junit.framework.Assert;
@@ -61,5 +62,21 @@ public class Tests {
             Assert.assertEquals(samples[n], decoded[n]);
         }
 
+    }
+
+    @Test
+    public void gsonTest(){
+        short [][]shorts = {{1,1},{2,2},{3,17},{4,99}};
+        Gson g = new Gson();
+        String json = g.toJson(shorts);
+
+        short[][] result = g.fromJson(json, short[][].class);
+        Assert.assertEquals(shorts.length, result.length);
+        for(int i=0; i < shorts.length; ++i) {
+            Assert.assertEquals(shorts[i].length, result[i].length);
+            for(int j=0; j < shorts[i].length; ++j){
+                Assert.assertEquals(shorts[i][j], result[i][j]);
+            }
+        }
     }
 }

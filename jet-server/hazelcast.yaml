@@ -1,0 +1,16 @@
+hazelcast:
+  cluster-name: jet
+  license-key: JET_ENT#25Nodes#EkBfCUG9YwSWgj0AXKliNJPMDmbdO5yQH2u6q81ZTn60011090119302105121011100010609010000201000
+  map:
+    audio:
+      in-memory-format: OBJECT
+      backup-count: 1
+      event-journal:
+        enabled: true
+        capacity: 10000
+        time-to-live-seconds: 0  # means infinite
+      eviction:
+        # we do not care to keep the entries, only the events
+        eviction-policy: LRU
+        size: 1
+        max-size-policy: PER_PARTITION

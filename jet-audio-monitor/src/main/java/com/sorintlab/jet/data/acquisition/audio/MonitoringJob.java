@@ -1,19 +1,32 @@
 package com.sorintlab.jet.data.acquisition.audio;
 
+import com.google.gson.Gson;
+import com.hazelcast.config.Config;
 import com.hazelcast.core.EntryEventType;
+import com.hazelcast.function.FunctionEx;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.Job;
+import com.hazelcast.jet.config.JetConfig;
 import com.hazelcast.jet.pipeline.*;
+import com.hazelcast.jet.python.PythonServiceConfig;
+import com.hazelcast.jet.python.PythonTransforms;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 import java.util.Map;
 
+import static com.hazelcast.jet.python.PythonTransforms.mapUsingPython;
+
 public class MonitoringJob {
     public static void main(String []args){
+        System.setProperty("hazelcast.config", "hazelcast.yaml");
         JetInstance jet = Jet.newJetInstance();
 
         Pipeline p = buildPipeLine();
@@ -29,6 +42,15 @@ public class MonitoringJob {
 
         StreamStage<short[]> audioStream = rawBytes.map(item -> MonitoringJob.decode16BitRawAudio(item.getValue()));
         audioStream.map( item -> rmsVolume(item)).writeTo(Sinks.logger());
+
+        ServiceFactory<?, Gson> gsonServiceFactory = ServiceFactories.<Gson>nonSharedService(ctx -> new Gson());
+        StreamStage<String> arraysAsStrings = audioStream.mapUsingService(gsonServiceFactory, (gson, item) -> gson.toJson(item));
+
+        //FunctionEx<StreamStage<String>, StreamStage<String>> pythonDFT = PythonTransforms.mapUsingPython(new PythonServiceConfig().setHandlerFile("python/dft.py"));
+        StreamStage<String> dftResults = arraysAsStrings.apply(mapUsingPython(new PythonServiceConfig().setBaseDir("python").setHandlerModule("dft"))).setLocalParallelism(1);
+
+        StreamStage<short[][]> spectrum = dftResults.mapUsingService(gsonServiceFactory, (gson, item) -> gson.fromJson(item, short[][].class));
+        spectrum.writeTo(Sinks.logger());
 
         return pipeline;
     }

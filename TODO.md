@@ -1,13 +1,18 @@
 # Now
-- set up FFT task in python
-  - update the pipeline to map short[] to string and add mapUsingPython stage
-  - decode the returned strings
+- integrate the python pipeline
+  - get frigging python working!
+    - does it have to be absolute path ? NO
+    - do I need guava ?  NO
+    - does it need to be on the cp ? NO
+    - is it required to set the main class ? NO
+    - does it have to be 4.3 ? NO
 - add some alerts
 - make the audio parameters variable
+- add jetmc
 - send outputs to prometheus so they can be visualized
 - output visualization
 - add source to the key and introduce multiple sources
-- update the data generator to write timestamped audio files
+- update the data generator to write timestamped audio files (or ..play the audio!)
 - move generator to rasberry pi (will need to expose ports on laptop)
   could even consider moving the whole thing to a server in my house
 
@@ -18,6 +23,8 @@
 - set up a learner project
 
 # Later
+- make it a multi-node jet cluster
+- lock down the versions of images
 
 # Much Later
 - fix the the problem with the jet jobs pane of mc

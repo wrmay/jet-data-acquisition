@@ -26,16 +26,16 @@ def transform_list(in_list):
     return [json.dumps(item) for item in result]
 
 
-if __name__ == '__main__':
-
-    sample_rate = 100
-    freq1 = 10
-    freq2 = 25
-    signal1 = [int(32768 * math.sin(n * freq1 * 2 * math.pi / sample_rate)) for n in range(sample_rate)]
-    signal2 = [int(32768 * math.sin(n * freq2 * 2 * math.pi / sample_rate)) for n in range(sample_rate)]
-    signal3 = [s1/2 + s2/2 for (s1, s2) in zip(signal1, signal2)]
-    signal4 = [s1 + 20000 * 2 * (random.random() - .5) for s1 in signal1]
-
-    input_list = [json.dumps(signal) for signal in [signal1, signal2, signal3, signal4]]
-
-    print(transform_list(input_list))
+# if __name__ == '__main__':
+#
+#     sample_rate = 100
+#     freq1 = 10
+#     freq2 = 25
+#     signal1 = [int(32768 * math.sin(n * freq1 * 2 * math.pi / sample_rate)) for n in range(sample_rate)]
+#     signal2 = [int(32768 * math.sin(n * freq2 * 2 * math.pi / sample_rate)) for n in range(sample_rate)]
+#     signal3 = [s1/2 + s2/2 for (s1, s2) in zip(signal1, signal2)]
+#     signal4 = [s1 + 20000 * 2 * (random.random() - .5) for s1 in signal1]
+#
+#     input_list = [json.dumps(signal) for signal in [signal1, signal2, signal3, signal4]]
+#
+#     print(transform_list(input_list))
