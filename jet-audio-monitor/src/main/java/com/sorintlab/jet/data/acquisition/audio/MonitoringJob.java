@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.Job;
+import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.pipeline.*;
 import com.hazelcast.jet.python.PythonServiceConfig;
 
@@ -17,14 +18,13 @@ import static com.hazelcast.jet.python.PythonTransforms.mapUsingPython;
 
 public class MonitoringJob {
     public static void main(String []args){
-        System.setProperty("hazelcast.config", "hazelcast.yaml");
+
         JetInstance jet = Jet.newJetInstance();
 
         Pipeline p = buildPipeLine();
 
-        Job job = jet.newJob(p);
-
-        job.join();
+        JobConfig config = new JobConfig().setName("audio-monitor").addClass(MonitoringJob.class).addClass(Gson.class);
+        Job job = jet.newJob(p, config);
     }
 
     static Pipeline buildPipeLine(){
@@ -33,7 +33,7 @@ public class MonitoringJob {
                 JournalInitialPosition.START_FROM_CURRENT)).withTimestamps(item -> item.getKey(), 5000);
 
         StreamStage<short[]> audioStream = rawBytes.map(item -> MonitoringJob.decode16BitRawAudio(item.getValue()));
-        audioStream.map( item -> rmsVolume(item)).writeTo(Sinks.logger());
+        audioStream.map( item -> rmsVolume(item)).writeTo(Sinks.logger(aShort -> "RMS VOL: " + aShort));
 
         ServiceFactory<?, Gson> gsonServiceFactory = ServiceFactories.<Gson>nonSharedService(ctx -> new Gson());
         StreamStage<String> arraysAsStrings = audioStream.mapUsingService(gsonServiceFactory, (gson, item) -> gson.toJson(item));
@@ -42,9 +42,17 @@ public class MonitoringJob {
         StreamStage<String> dftResults = arraysAsStrings.apply(mapUsingPython(new PythonServiceConfig().setBaseDir("python").setHandlerModule("dft"))).setLocalParallelism(1);
 
         StreamStage<short[][]> spectrum = dftResults.mapUsingService(gsonServiceFactory, (gson, item) -> gson.fromJson(item, short[][].class));
-        spectrum.writeTo(Sinks.logger());
+        spectrum.writeTo(Sinks.logger( shorts -> formatSpectrum(shorts)));
 
         return pipeline;
+    }
+
+    public static String formatSpectrum(short [][]shorts){
+        StringBuilder buffer = new StringBuilder("FREQ \\ AMPL\n");
+        for (short [] fa: shorts){
+            buffer.append("\t" + fa[0] + " \\ " + fa[1] + "\n");
+        }
+        return  buffer.toString();
     }
 
     /*

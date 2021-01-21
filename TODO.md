@@ -1,25 +1,19 @@
 # Now
-- produce a combined server and job
-- add some alerts
-- make the audio parameters variable
-- add jetmc
-- send outputs to prometheus so they can be visualized
-- output visualization
-- add source to the key and introduce multiple sources
-- update the data generator to write timestamped audio files (or ..play the audio!)
-- move generator to rasberry pi (will need to expose ports on laptop)
-  could even consider moving the whole thing to a server in my house
-
-- main presentation
-  - add a bit about IMDG under Jet and properties of maps
-- architecture diagram
-- make sure telco demo is working
-- set up a learner project
+- change the generator to support multiple streams
+- change the sample rate to 200 KHz
+- change the job to support multiple machines (key by machine id)
 
 # Later
+- send outputs to prometheus so they can be visualized
+- output visualization
+- architecture diagram
+- add some alerts
 - separate out the jet job from the jet servers
 - make it a multi-node jet cluster
 - lock down the versions of images
+- add source to the key and introduce multiple sources
+- move generator to rasberry pi (will need to expose ports on laptop)
+  could even consider moving the whole thing to a server in my house
 
 # Much Later
 - fix the the problem with the jet jobs pane of mc

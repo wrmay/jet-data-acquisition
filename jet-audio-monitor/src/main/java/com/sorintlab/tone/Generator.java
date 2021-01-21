@@ -4,6 +4,9 @@ import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.ArgumentParsers;
+
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -56,45 +59,79 @@ public class Generator
 
     public static void main( String[] args )
     {
+        ArgumentParser parser = ArgumentParsers.newFor("Generator").build().defaultHelp(true).description("Generate simulated audio samples and write them to a Jet cluster");
+        parser.addArgument("--signal-count").type(Integer.TYPE).setDefault(3);
+
+        
+
+        int freq = 1000;
+        short amp = Short.MAX_VALUE;
+
+        if (args.length > 0){
+            try {
+                freq = Integer.parseInt(args[0]);
+            } catch(NumberFormatException nfx){
+
+            }
+        }
+
+        if (args.length > 1){
+            try {
+                amp = Short.parseShort(args[1]);
+            } catch(NumberFormatException nfx){
+
+            }
+        }
+
+        System.out.println("FREQUENCY: " + freq + "Hz");
+        System.out.println("AMPLITUDE: " + amp);
+
         HazelcastInstance hz = HazelcastClient.newHazelcastClient();
         IMap<Long, byte[]> map = hz.getMap("audio");
 
         // now and n seconds after now, generate sampleRate samples starting with sample for n*sampleRate
         // put those in a hz entry in a map
-
-        int durationSecs = 300;
-        double sampleRate = 44100d;
-
-        double wave1Freq = 8000;
-        short wave1Amp = Short.MAX_VALUE;
-        double wave1Weight = 0.5d;
-        double wave2Freq = 800;
-        short wave2Amp = Short.MAX_VALUE;
-        double wave2Weight = 0.5d;
-        short noiseAmp = Short.MAX_VALUE;
-        double noiseWeight = 0.0d;
-
-        int samples = (int) (durationSecs * sampleRate);
-
+        int sampleRate = 40000;
         long nextWakeup = System.currentTimeMillis();
         long sleepTime = 0;
-        ByteBuffer buffer = ByteBuffer.allocate(2 * (int)sampleRate);
-        for(int s = 0; s < durationSecs; ++s){
-            buffer.clear();
-            for(int i=0; i<sampleRate; ++i){
+        ByteBuffer exampleBuffer = ByteBuffer.allocate(2 * sampleRate * 5);
+        exampleBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer secondBuffer = ByteBuffer.allocate(2 *  sampleRate);
+        secondBuffer.order(ByteOrder.LITTLE_ENDIAN);
+
+        int s = 0;
+        while(true){
+            s += 1;
+            secondBuffer.clear();
+            for(int i=0; i <sampleRate; ++i){
                 int n = s * (int) sampleRate + i;
-                short w1 = sinwave(sampleRate, wave1Freq, 0.0, wave1Amp, i);
-                short w2 = sinwave(sampleRate, wave2Freq, 0.0, wave2Amp, i);
-                short noise = noise(noiseAmp);
-                buffer.putShort(weightedSum(w1, wave1Weight, w2, wave2Weight, noise, noiseWeight));
+                short w = sinwave(sampleRate, freq, 0.0, amp, n);
+                secondBuffer.putShort(w);
+                if (exampleBuffer != null)
+                    exampleBuffer.putShort(w);
             }
 
             long now = System.currentTimeMillis();
-            map.put(now, buffer.array());  // if we go async, make sure to copy the byte []
-            System.out.println("PUT at " + now);
-
+            map.put(now, secondBuffer.array());  // if we go async, make sure to copy the byte []
 
             nextWakeup += 1000;
+            if (s == 5){
+                nextWakeup += 2000;
+                exampleBuffer.flip();
+                ByteArrayInputStream bis = new ByteArrayInputStream(exampleBuffer.array());
+                AudioFormat audioFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, (float) sampleRate, 16, 1, 2, (float) sampleRate, false);
+                AudioInputStream ais = new AudioInputStream(bis, audioFormat, 5 * sampleRate);
+
+                File outFile = new File("test.wav");
+                try {
+                    AudioSystem.write(ais, AudioFileFormat.Type.WAVE, outFile);
+                    System.out.println("SAMPLE WRITTEN TO \"test.wav\"");
+                } catch(IOException iox){
+                    iox.printStackTrace(System.err);
+                    System.exit(1);
+                }
+                exampleBuffer = null;
+            }
             sleepTime = nextWakeup - System.currentTimeMillis();
             if (sleepTime < 0){
                 System.err.println("cant't go that fast");
@@ -103,17 +140,5 @@ public class Generator
             Generator.sleep(sleepTime);
         }
 
-//        buffer.flip();
-//        ByteArrayInputStream bis = new ByteArrayInputStream(buffer.array());
-//        AudioFormat audioFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, (float) sampleRate, 16, 1, 2, (float) sampleRate, false);
-//        AudioInputStream ais = new AudioInputStream(bis, audioFormat, samples);
-//
-//        File outFile = new File("test.wav");
-//        try {
-//            AudioSystem.write(ais, AudioFileFormat.Type.WAVE, outFile);
-//        } catch(IOException iox){
-//            iox.printStackTrace(System.err);
-//            System.exit(1);
-//        }
     }
 }
