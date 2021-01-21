@@ -3,3 +3,9 @@ target/
 *.iml
 .vscode/
 venv/
+.project
+.settings/
+.classpath
+.DS_Store
+*.wav
+*.log
