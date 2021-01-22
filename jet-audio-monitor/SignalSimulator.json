@@ -1,0 +1,25 @@
+{
+    "generators": [
+        {
+            "id" : 1,
+            "amplitude": 32000,
+            "frequency": 200,
+            "sampleRate": 200000,
+            "phase": 0
+        },
+        {
+            "id" : 2,
+            "amplitude": 32000,
+            "frequency": 2000,
+            "sampleRate": 200000,
+            "phase": 0
+        },
+        {
+            "id" : 3,
+            "amplitude": 32000,
+            "frequency": 1100,
+            "sampleRate": 200000,
+            "phase": 0
+        }
+    ]
+}
