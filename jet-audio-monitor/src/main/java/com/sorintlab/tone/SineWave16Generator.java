@@ -1,6 +1,7 @@
 package com.sorintlab.tone;
 
 import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
 /**
  * Generates 16bit sine wave samples with configurable frequency, amplitude, phase and sample rate
  */
@@ -76,6 +77,15 @@ public class SineWave16Generator {
             int n = s * sampleRate + i;
             short w = sinwave(n);
             buffer.putShort(w);
+        }
+
+    }
+
+    public void writeSamples(ShortBuffer buffer, int s){
+        for(int i=0; i < sampleRate; ++i){
+            int n = s * sampleRate + i;
+            short w = sinwave(n);
+            buffer.put(w);
         }
 
     }

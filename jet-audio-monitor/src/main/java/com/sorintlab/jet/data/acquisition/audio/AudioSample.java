@@ -7,7 +7,7 @@ public class AudioSample implements Serializable {
  
     private int id;
     private long timestamp;
-    private byte []sample;  // this is the raw audio sample
+    private short []sample;  
 
     public int getId(){
         return id;
@@ -17,11 +17,11 @@ public class AudioSample implements Serializable {
         return timestamp;
     }
 
-    public byte []getSample() {
+    public short []getSample() {
         return sample;
     }
 
-    public AudioSample(int id, long timestamp, byte []sample) {
+    public AudioSample(int id, long timestamp, short []sample) {
         this.id = id;
         this.timestamp = timestamp;
         this.sample = sample;

@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
 
 public class SignalSimulator {
@@ -68,8 +69,7 @@ public class SignalSimulator {
         // put those in a hz entry in a map
         long nextWakeup = System.currentTimeMillis();
         long sleepTime = 0;
-        ByteBuffer secondBuffer = ByteBuffer.allocate(2 * sampleRate);
-        secondBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        ShortBuffer secondBuffer = ShortBuffer.allocate(sampleRate);
 
         ByteBuffer[] exampleBuffers = new ByteBuffer[ss.generators.length];
         for(int i=0;i < exampleBuffers.length; ++i){
