@@ -1,6 +1,4 @@
-import com.google.gson.Gson;
 import com.sorintlab.jet.data.acquisition.audio.MonitoringJob;
-import com.sorintlab.tone.SignalSimulator;
 import com.sorintlab.tone.SineWave16Generator;
 
 import org.junit.Assert;
@@ -45,43 +43,5 @@ public class Tests {
         Assert.assertTrue( result <= (short)(1.01 * expected));
     }
 
-    @Test
-    public void encodeDecode(){
-        int sampleRate = 44100;
-        int freq = 1000;
 
-        ByteBuffer testBuffer = ByteBuffer.allocate(sampleRate * 2);
-        testBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        SineWave16Generator generator = new SineWave16Generator(Short.MAX_VALUE, freq, sampleRate, 0.0);
-        generator.writeSamples(testBuffer, 0);
-        testBuffer.flip();
-
-        short []samples = new short[sampleRate];
-        testBuffer.asShortBuffer().get(samples);
-
-        byte [] encodedBytes = testBuffer.array();
-        short []decoded = MonitoringJob.decode16BitRawAudio(encodedBytes);
-
-        Assert.assertEquals(samples.length, decoded.length);
-        for(int n=0;n < samples.length; ++n){
-            Assert.assertEquals(samples[n], decoded[n]);
-        }
-
-    }
-
-    @Test
-    public void gsonTest(){
-        short [][]shorts = {{1,1},{2,2},{3,17},{4,99}};
-        Gson g = new Gson();
-        String json = g.toJson(shorts);
-
-        short[][] result = g.fromJson(json, short[][].class);
-        Assert.assertEquals(shorts.length, result.length);
-        for(int i=0; i < shorts.length; ++i) {
-            Assert.assertEquals(shorts[i].length, result[i].length);
-            for(int j=0; j < shorts[i].length; ++j){
-                Assert.assertEquals(shorts[i][j], result[i][j]);
-            }
-        }
-    }
 }

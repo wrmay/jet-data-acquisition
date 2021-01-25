@@ -3,27 +3,37 @@ import math
 import numpy as np
 import random
 
+# TODO rework this to reflect AudioSamples in and AudioSpectrum out
 
 def transform_list(in_list):
-    # the input list is a list of string, each of which is a json-encoded list of numbers
+    # the input list is a list of string, each of which is a json-encoded audio sample with the 
+    # following format
+    #
+    # {
+    #   "id": 9,
+    #   "timestamp" : 123456789,
+    #    "sample": [22,23,...]
+    # }
+    #
+
     sample_lists = [json.loads(item) for item in in_list]
 
     # assumes all lists are of the same length !
-    count = len(sample_lists[0])
+    count = len(sample_lists[0]['sample'])
 
     # freq_components is a list where each entry is an ndarray of scalar with one entry for each positive freq
     # in [0,count/2) Hz representing the magnitude of the component (phase ignored)
-    freq_components = [np.abs(np.fft.fft(item)[0:int(count / 2)])/(count/2) for item in sample_lists]
+    freq_components = [np.abs(np.fft.fft(item['sample'])[0:int(count / 2)])/(count/2) for item in sample_lists]
+
+    results = [ {"id": item["id"], "timestamp" : item["timestamp"], "components" : []} for item in sample_lists]
 
     result = []
-    for component_list in freq_components:
-        selector = component_list > 328  # selector is an ndarray of boolean
-        magnitudes = [int(item) for item in list(component_list[selector])]
-        freqs = list(np.array(range(int(count/2)))[selector])
-        freqs = [int(f) for f in freqs]  # json doesn't like numpy types
-        result.append([(f, m) for (f, m) in zip(freqs, magnitudes)])
+    for component_list, result in zip(freq_components, results):
+        for f, c in enumerate(component_list[0: int(count/2)]):
+            if c > 328:
+                result["components"].append({"frequency": int(f), "amplitude": int(c)})
 
-    return [json.dumps(item) for item in result]
+    return [json.dumps(item) for item in results]
 
 
 # if __name__ == '__main__':

@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
-import java.util.ArrayList;
 
 public class SignalSimulator {
     private static final int SAMPLE_SECONDS = 5;
@@ -103,7 +102,6 @@ public class SignalSimulator {
             s += 1;
             nextWakeup += 1000;
             if (s == SAMPLE_SECONDS) {
-                nextWakeup += 2000; // allow some extra time since we need to write to the file system
                 buffer_num = 0;
                 for (ByteBuffer exampleBuffer : exampleBuffers) {
                     exampleBuffer.flip();
@@ -124,12 +122,12 @@ public class SignalSimulator {
             }
 
             sleepTime = nextWakeup - System.currentTimeMillis();
-            if (sleepTime < 0) {
+            if (sleepTime < -5000) {
                 System.err.println("cant't go that fast");
                 System.exit(1);
             }
 
-            sleep(sleepTime);
+            if (sleepTime > 0) sleep(sleepTime);
         }
 
     }

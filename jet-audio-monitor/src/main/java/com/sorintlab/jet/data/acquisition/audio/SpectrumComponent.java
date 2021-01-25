@@ -5,13 +5,13 @@ import java.io.Serializable;
 public class SpectrumComponent implements Serializable{
     private static final long serialVersionUID = 2683074280207482651L;
     private short frequency;
-    private short amplitude;
+    private int amplitude;
 
     public SpectrumComponent(){
 
     }
 
-    public SpectrumComponent(short frequency, short amplitude) {
+    public SpectrumComponent(short frequency, int amplitude) {
         this.frequency = frequency;
         this.amplitude = amplitude;
     }
@@ -24,11 +24,11 @@ public class SpectrumComponent implements Serializable{
         this.frequency = frequency;
     }
 
-    public short getAmplitude() {
+    public int getAmplitude() {
         return amplitude;
     }
 
-    public void setAmplitude(short amplitude) {
+    public void setAmplitude(int amplitude) {
         this.amplitude = amplitude;
     }
 

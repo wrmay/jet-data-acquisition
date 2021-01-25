@@ -1,7 +1,6 @@
 package com.sorintlab.jet.data.acquisition.audio;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.Job;
@@ -11,9 +10,6 @@ import com.hazelcast.jet.pipeline.*;
 import com.hazelcast.jet.python.PythonServiceConfig;
 
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.ShortBuffer;
 import java.util.Map;
 
 import static com.hazelcast.jet.python.PythonTransforms.mapUsingPython;
@@ -25,8 +21,9 @@ public class MonitoringJob {
 
         Pipeline p = buildPipeLine();
 
-        JobConfig config = new JobConfig().setName("audio-monitor").addClass(MonitoringJob.class).addClass(Gson.class);
+        JobConfig config = new JobConfig().setName("audio-monitor").addClass(MonitoringJob.class);
         Job job = jet.newJob(p, config);
+        // job.join();
     }
 
     static Pipeline buildPipeLine(){
@@ -40,7 +37,7 @@ public class MonitoringJob {
         ServiceFactory<?, ObjectMapper> jsonServiceFactory = ServiceFactories.<ObjectMapper>nonSharedService(ctx -> new ObjectMapper());
         StreamStage<String> audioSamplesAsJson = audioSamples.mapUsingService(jsonServiceFactory, (mapper, item) -> mapper.writeValueAsString(item.getValue()));
 
-        StreamStage<String> dftResults = audioSamplesAsJson.apply(mapUsingPython(new PythonServiceConfig().setHandlerFile("python/dft.py")));
+        StreamStage<String> dftResults = audioSamplesAsJson.apply(mapUsingPython(new PythonServiceConfig().setHandlerFile("python/dft.py"))).setLocalParallelism(1);
 
         StreamStage<AudioSpectrum> spectrum = dftResults.mapUsingService(jsonServiceFactory, (json, item) -> json.readValue(item, AudioSpectrum.class));
         spectrum.writeTo(Sinks.logger());
