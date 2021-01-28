@@ -3,14 +3,14 @@
         {
             "id" : 1,
             "amplitude": 32000,
-            "frequency": 200,
+            "frequency": 400,
             "sampleRate": 200000,
             "phase": 0
         },
         {
             "id" : 2,
             "amplitude": 32000,
-            "frequency": 1000,
+            "frequency": 600,
             "sampleRate": 200000,
             "phase": 0
         }

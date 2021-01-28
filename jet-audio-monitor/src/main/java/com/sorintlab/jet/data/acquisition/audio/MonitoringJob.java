@@ -37,7 +37,7 @@ public class MonitoringJob {
         ServiceFactory<?, ObjectMapper> jsonServiceFactory = ServiceFactories.<ObjectMapper>nonSharedService(ctx -> new ObjectMapper());
         StreamStage<String> audioSamplesAsJson = audioSamples.mapUsingService(jsonServiceFactory, (mapper, item) -> mapper.writeValueAsString(item.getValue()));
 
-        StreamStage<String> dftResults = audioSamplesAsJson.apply(mapUsingPython(new PythonServiceConfig().setHandlerFile("python/dft.py"))).setLocalParallelism(1);
+        StreamStage<String> dftResults = audioSamplesAsJson.apply(mapUsingPython(new PythonServiceConfig().setHandlerFile("python/dft.py"))).setLocalParallelism(2);
 
         StreamStage<AudioSpectrum> spectrum = dftResults.mapUsingService(jsonServiceFactory, (json, item) -> json.readValue(item, AudioSpectrum.class));
         spectrum.writeTo(Sinks.logger());
