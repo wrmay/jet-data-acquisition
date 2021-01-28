@@ -1,73 +1,50 @@
 package com.sorintlab.jet.data.acquisition.audio;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.Job;
+import com.hazelcast.jet.config.JobConfig;
+import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.pipeline.*;
 import com.hazelcast.jet.python.PythonServiceConfig;
 
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.ShortBuffer;
 import java.util.Map;
 
 import static com.hazelcast.jet.python.PythonTransforms.mapUsingPython;
 
 public class MonitoringJob {
     public static void main(String []args){
-        System.setProperty("hazelcast.config", "hazelcast.yaml");
+
         JetInstance jet = Jet.newJetInstance();
 
         Pipeline p = buildPipeLine();
 
-        Job job = jet.newJob(p);
-
-        job.join();
+        JobConfig config = new JobConfig().setName("audio-monitor").addClass(MonitoringJob.class);
+        Job job = jet.newJob(p, config);
+        // job.join();
     }
 
     static Pipeline buildPipeLine(){
         Pipeline pipeline = Pipeline.create();
-        StreamStage<Map.Entry<Long, byte[]>> rawBytes = pipeline.readFrom(Sources.<Long, byte[]>mapJournal("audio",
-                JournalInitialPosition.START_FROM_CURRENT)).withTimestamps(item -> item.getKey(), 5000);
+        StreamStage<Map.Entry<Integer, AudioSample>> audioSamples = pipeline.readFrom(Sources.<Integer, AudioSample>mapJournal("audio",
+                JournalInitialPosition.START_FROM_CURRENT)).withTimestamps(item -> item.getValue().getTimestamp(), 5000);
 
-        StreamStage<short[]> audioStream = rawBytes.map(item -> MonitoringJob.decode16BitRawAudio(item.getValue()));
-        audioStream.map( item -> rmsVolume(item)).writeTo(Sinks.logger());
+        StreamStage<Tuple2<Integer, Short>> volumes = audioSamples.map(item -> Tuple2.tuple2(item.getKey(), rmsVolume(item.getValue().getSample())));
+        volumes.writeTo(Sinks.logger());
 
-        ServiceFactory<?, Gson> gsonServiceFactory = ServiceFactories.<Gson>nonSharedService(ctx -> new Gson());
-        StreamStage<String> arraysAsStrings = audioStream.mapUsingService(gsonServiceFactory, (gson, item) -> gson.toJson(item));
+        ServiceFactory<?, ObjectMapper> jsonServiceFactory = ServiceFactories.<ObjectMapper>nonSharedService(ctx -> new ObjectMapper());
+        StreamStage<String> audioSamplesAsJson = audioSamples.mapUsingService(jsonServiceFactory, (mapper, item) -> mapper.writeValueAsString(item.getValue()));
 
-        //FunctionEx<StreamStage<String>, StreamStage<String>> pythonDFT = PythonTransforms.mapUsingPython(new PythonServiceConfig().setHandlerFile("python/dft.py"));
-        StreamStage<String> dftResults = arraysAsStrings.apply(mapUsingPython(new PythonServiceConfig().setBaseDir("python").setHandlerModule("dft"))).setLocalParallelism(1);
+        StreamStage<String> dftResults = audioSamplesAsJson.apply(mapUsingPython(new PythonServiceConfig().setHandlerFile("python/dft.py"))).setLocalParallelism(2);
 
-        StreamStage<short[][]> spectrum = dftResults.mapUsingService(gsonServiceFactory, (gson, item) -> gson.fromJson(item, short[][].class));
+        StreamStage<AudioSpectrum> spectrum = dftResults.mapUsingService(jsonServiceFactory, (json, item) -> json.readValue(item, AudioSpectrum.class));
         spectrum.writeTo(Sinks.logger());
 
         return pipeline;
     }
 
-    /*
-     * Although it would seem to be more efficient to  pass audio data around
-     * as a ShortBuffer, which would be just a view of the underlying byte [], in
-     * anticipation of having to pass this to python, I'm going to go ahead and
-     * copy into a new short []
-     *
-     * Since they byte [] should be storing short values (i.e. 2 byte  signed integers), this method assumes,
-     * without checking,  that the length of the byte [] is a multiple of 2. If it's not, the last byte will
-     * be ignored.  If the length of the input is <= 1 bad things may happen.
-     */
-    public static short []decode16BitRawAudio(byte []bytes){
-
-        ByteBuffer buffer = ByteBuffer.wrap(bytes);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        ShortBuffer sb = buffer.asShortBuffer();
-
-        short[] result = new short[bytes.length / 2];
-        for(int i=0;i < result.length; ++i) result[i] = sb.get(i);
-
-        return result;
-    }
 
     /*
      * Using immutable types here create 44100 temporary objects (plus or minus a few).  Look into something that can

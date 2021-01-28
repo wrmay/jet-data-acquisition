@@ -2,5 +2,4 @@ hazelcast-client:
   cluster-name: jet
   network:
     cluster-members:
-      - jet1
-      - jet2
+      - localhost
