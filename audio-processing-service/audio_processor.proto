@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package audio_processor;
+
+message AudioSample {
+    sint32 id = 1;
+    int64  timestamp = 2;
+    bytes  sample = 3;
+}
+
+message SpectrumComponent {
+    int32 frequency = 1;
+    int32 amplitude = 2;
+}
+
+message Spectrum {
+    sint32 id = 1;
+    int64  timestamp = 2;
+    repeated SpectrumComponent components = 3;
+}
+
+service AudioAnalyzer {
+    rpc ComputeSpectrum(stream AudioSample) returns (stream Spectrum){}
+}
+
+
