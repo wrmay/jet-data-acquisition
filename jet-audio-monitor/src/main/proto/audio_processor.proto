@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package audio_processor;
+
 message AudioSample {
     sint32 id = 1;
     int64  timestamp = 2;
@@ -18,5 +20,7 @@ message Spectrum {
 }
 
 service AudioAnalyzer {
-    rpc ComputeSpectrum(AudioSample) returns (Spectrum){}
+    rpc ComputeSpectrum(stream AudioSample) returns (stream Spectrum){}
 }
+
+
