@@ -14,7 +14,7 @@ dependencies {
 
     // Hazelcast Jet
     compile 'com.hazelcast.jet:hazelcast-jet:4.4'
-    compile 'com.hazelcast.jet:hazelcast-jet-python:4.4'
+    compile 'com.hazelcast.jet:hazelcast-jet-grpc:4.4'
 
     // misc
     compile 'com.fasterxml.jackson.core:jackson-databind:2.12.0'
