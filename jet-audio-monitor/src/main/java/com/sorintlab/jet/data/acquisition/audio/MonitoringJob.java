@@ -33,15 +33,13 @@ public class MonitoringJob {
         StreamStage<Map.Entry<Integer, AudioSample>> audioSamples = pipeline.readFrom(Sources.<Integer, AudioSample>mapJournal("audio",
                 JournalInitialPosition.START_FROM_CURRENT)).withTimestamps(item -> item.getValue().getTimestamp(), 5000);
 
-        StreamStage<Tuple2<Integer, Short>> volumes = audioSamples.map(item -> Tuple2.tuple2(item.getKey(), rmsVolume(item.getValue().getSample())));
-        volumes.writeTo(Sinks.logger());
-
-        ServiceFactory<?, ? extends GrpcService<AudioProcessor.AudioSample, AudioProcessor.Spectrum>> audioService =
+        ServiceFactory<?, ? extends GrpcService<AudioProcessor.AudioSample, AudioProcessor.AudioSummary>> audioService =
                 GrpcServices.bidirectionalStreamingService(
                         () -> ManagedChannelBuilder.forAddress("localhost", grpcPort).usePlaintext(),
-                        channel -> AudioAnalyzerGrpc.newStub(channel)::computeSpectrum
+                        channel -> AudioAnalyzerGrpc.newStub(channel)::computeSummary
                 );
 
+        // TODO - is there some way to eliminate the copy in getSampleAsLittleEndianByteBuffer and the one in ByteString.copyFrom
         StreamStage<AudioProcessor.AudioSample> protobufSamples =
                 audioSamples.map(item -> AudioProcessor.AudioSample.newBuilder()
                         .setId(item.getValue().getId())
@@ -49,11 +47,10 @@ public class MonitoringJob {
                         .setSample(ByteString.copyFrom(item.getValue().getSampleAsLittleEndianByteBuffer()))
                         .build());
 
-
-        StreamStage<AudioProcessor.Spectrum> spectrums =
+        StreamStage<AudioProcessor.AudioSummary> summaries =
                 protobufSamples.mapUsingServiceAsync(audioService, GrpcService::call);
 
-        spectrums.map(MonitoringJob::formatSpectrum).writeTo(Sinks.logger());
+        summaries.map(MonitoringJob::formatSummary).writeTo(Sinks.logger());
 
         return pipeline;
     }
@@ -64,28 +61,14 @@ public class MonitoringJob {
         return result.toString();
     }
 
-    public static String formatSpectrum(AudioProcessor.Spectrum spectrum){
-        StringBuilder result = new StringBuilder("Spectrum of " + spectrum.getId() + " at t=" + spectrum.getTimestamp());
-        for(AudioProcessor.SpectrumComponent component: spectrum.getComponentsList()){
+    public static String formatSummary(AudioProcessor.AudioSummary summary){
+        StringBuilder result = new StringBuilder("Summary of " + summary.getId() + " at t=" + summary.getTimestamp() + " rms volume: " + summary.getRmsVolume());
+        result.append("\n\tSpectrum Components");
+        for(AudioProcessor.SpectrumComponent component: summary.getComponentsList()){
             result.append("\n\t").append(component.getAmplitude()).append(" @ ").append(component.getFrequency()).append("Hz");
         }
         result.append("\n");
         return result.toString();
     }
 
-    /*
-     * Using immutable types here create sample_size temporary objects (plus or minus a few).  Look into something that can
-     * operate on long values in place.
-     */
-    public static short rmsVolume(short []audio){
-        BigInteger result = BigInteger.ZERO;
-        for (short value : audio) result = result.add(BigInteger.valueOf(value).pow(2));
-        result = result.divide(BigInteger.valueOf(audio.length));
-
-        double d = result.doubleValue();
-        d = Math.sqrt(d);
-
-        // it should actually fit wth no overflow
-        return (short) d;
-    }
 }
