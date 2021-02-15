@@ -1,6 +1,6 @@
 # Overview
 
-This project is a demonstration of Hazelcast Jet as a data acquisition layer and a sanbox for experimenting with high frequency data acquisition use cases.  Jet can provide a light weight infrastructure for pre-processing very large event streams and turning them into more meaningful information that is much lower volume and much more meaningful.
+This project is a demonstration of Hazelcast Jet as a data acquisition layer and a sandbox for experimenting with high frequency data acquisition use cases.  Jet can provide a light weight infrastructure for pre-processing very large event streams and turning them into more meaningful information that is much lower volume.
 
 In this project, Jet is used to process 200kHz audio data sources (i.e. sensors that produce 200,00 reading each second ).  The input is a stream of raw data consisting of 200,000 sound level measurements per second per source and the output is a list of major spectrum component of the sound signal, and the volume.  Not only are the frequency analysis and the volume of more use to other systems (e.g. monitoring and alerting systems), they are smaller by more than 4 orders of magnitude.  The input is a few hundred thousand integers per source per second and the output is a small handful of integers per source per second.  
 
