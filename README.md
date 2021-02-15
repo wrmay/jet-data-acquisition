@@ -10,7 +10,7 @@ The diagram below shows the components of this system and how they interact.
 
 ![Architecture Overview](overview.png)
 
-The Audio Event Generator generates 200,000 measurements each second for each source.  For each source, for each seconde, the generated data consistst of 200,000 regularly spaced samples from a pure sine wave of configurable frequency and amplitude.  For each source + second, an `AudioSample` object is generated containing 1 seconds worth of data.  That object `put` into a Hazelcast `IMap` that is hosted within the pipeline. A stripped down version of the `AudioSample` object is shown below.  
+The Audio Event Generator generates 200,000 measurements each second for each source.  For each source, for each second, the generated data consistst of regularly spaced samples from a pure sine wave of configurable frequency and amplitude.  For each source + second, an `AudioSample` object is generated containing 1 seconds' worth of data.  That object is  `put` into a Hazelcast `IMap` that is hosted within the pipeline. A stripped down version of the `AudioSample` object is shown below.  
 
 ```java
 public class AudioSample implements Serializable { 
