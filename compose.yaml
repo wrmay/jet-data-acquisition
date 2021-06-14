@@ -1,0 +1,16 @@
+services:
+    jet:
+      image: hazelcast/hazelcast-jet-enterprise:4.5
+      secrets:
+        - jet-license-key
+      command: ["bash", "-c", "set -euo pipefail \
+      && if [[ \"x${CLASSPATH}\" != \"x\" ]]; then export CLASSPATH=\"${CLASSPATH}:${CLASSPATH_DEFAULT}\"; else export CLASSPATH=\"${CLASSPATH_DEFAULT}\"; fi \
+      && if [[ \"x${JAVA_OPTS}\" != \"x\" ]]; then export JAVA_OPTS=\"${JAVA_OPTS_DEFAULT} ${JAVA_OPTS}\"; else export JAVA_OPTS=\"${JAVA_OPTS_DEFAULT}\"; fi \
+      && export JAVA_OPTS=\"-Dhazelcast.enterprise.license.key=`cat /run/secrets/jet-license-key` ${JAVA_OPTS}\"
+      && set -x \
+      && jet-start \
+     "]
+
+secrets:
+  jet-license-key:
+    file: .jet-license-key
