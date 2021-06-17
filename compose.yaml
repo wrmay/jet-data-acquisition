@@ -11,6 +11,11 @@ services:
       && jet-start \
      "]
 
+    jetmc:
+      image: hazelcast/hazelcast-jet-management-center:4.3.1 
+      ports:
+        - "8081:8081"
+
 secrets:
   jet-license-key:
     file: .jet-license-key
