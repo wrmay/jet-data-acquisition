@@ -10,4 +10,4 @@ venv/
 *.wav
 *.log
 bin/
-.jet-license-key
+.env

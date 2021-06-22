@@ -1,21 +1,22 @@
 services:
     jet:
       image: hazelcast/hazelcast-jet-enterprise:4.5
-      secrets:
-        - jet-license-key
-      command: ["bash", "-c", "set -euo pipefail \
-      && if [[ \"x${CLASSPATH}\" != \"x\" ]]; then export CLASSPATH=\"${CLASSPATH}:${CLASSPATH_DEFAULT}\"; else export CLASSPATH=\"${CLASSPATH_DEFAULT}\"; fi \
-      && if [[ \"x${JAVA_OPTS}\" != \"x\" ]]; then export JAVA_OPTS=\"${JAVA_OPTS_DEFAULT} ${JAVA_OPTS}\"; else export JAVA_OPTS=\"${JAVA_OPTS_DEFAULT}\"; fi \
-      && export JAVA_OPTS=\"-Dhazelcast.enterprise.license.key=`cat /run/secrets/jet-license-key` ${JAVA_OPTS}\"
-      && set -x \
-      && jet-start \
-     "]
-
-    jetmc:
-      image: hazelcast/hazelcast-jet-management-center:4.3.1 
+      environment:
+        - JET_LICENSE_KEY 
+        - JAVA_OPTS=-Dhazelcast.config=/etc/hazelcast/hazelcast.yaml
+      volumes:
+        - "./config:/etc/hazelcast"
+      
+    jetmc: 
+      image: hazelcast/hazelcast-jet-management-center
+      environment: 
+        - MC_LICENSE_KEY 
+        - MC_CLIENT_CONFIG=/etc/hazelcast/hazelcast-client.xml
+      volumes:
+        - "./config:/etc/hazelcast"
       ports:
         - "8081:8081"
 
-secrets:
-  jet-license-key:
-    file: .jet-license-key
+# secrets:
+#   jet-license-key:
+#     file: .jet-license-key
