@@ -63,7 +63,16 @@ service AudioAnalyzer {
 
 # How To
 
-coming soon ...
+Create a file called ".env" to hold the environment variables that will be used by 
+Docker Compose. Set the JET_LICENSE_KEY and MC_LICENSE_KEY environment variable to 
+your license key as shown below (both entries have the same value).
+
+```
+JET_LICENSE_KEY=5Nodes#ABCDefg
+MC_LICENSE_KEY=5Nodes#ABCDefg
+```
+
+
 
 
 

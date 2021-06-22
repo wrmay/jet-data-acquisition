@@ -1,6 +1,6 @@
 services:
     jet:
-      image: hazelcast/hazelcast-jet-enterprise:4.5
+      image: hazelcast/hazelcast-jet-enterprise:4.3.1
       environment:
         - JET_LICENSE_KEY 
         - JAVA_OPTS=-Dhazelcast.config=/etc/hazelcast/hazelcast.yaml
@@ -8,7 +8,7 @@ services:
         - "./config:/etc/hazelcast"
       
     jetmc: 
-      image: hazelcast/hazelcast-jet-management-center
+      image: hazelcast/hazelcast-jet-management-center:4.3.1
       environment: 
         - MC_LICENSE_KEY 
         - MC_CLIENT_CONFIG=/etc/hazelcast/hazelcast-client.xml
