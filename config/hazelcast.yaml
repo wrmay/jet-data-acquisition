@@ -62,3 +62,16 @@ hazelcast:
   # https://docs.hazelcast.org/docs/latest/manual/html-single/#system-properties
 #  properties:
 #    property.name: value
+  map:
+      audio:
+        in-memory-format: OBJECT
+        backup-count: 1
+        event-journal:
+          enabled: true
+          capacity: 10000
+          time-to-live-seconds: 0  # means infinite
+        eviction:
+          # we do not care to keep the entries, only the events
+          eviction-policy: LRU
+          size: 10
+          max-size-policy: PER_PARTITION
