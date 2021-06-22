@@ -74,9 +74,18 @@ MC_LICENSE_KEY=5Nodes#ABCDefg
 
 
 # Configuring GRPC/Protobuf Source Code Generation for Java 
-Obtain the grpc java plugin to the protoc compiler here: https://repo1.maven.org/maven2/io/grpc/protoc-gen-grpc-java/1.38.1/ .  Rename the download to `protoc-gen-grpc-java` 
-and make it executable.  Make sure it is on the path.  Execute it once while holding 
-down the "Option" key so you can tell MacOs to trust it.
+Install the protobuf compiler from here: https://github.com/protocolbuffers/protobuf/releases.  
+Do not get the language specific package, get the platform specific package, for example, 
+https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protoc-3.17.3-osx-x86_64.zip.  
+Execute it once while holding down the "Option" key so you can tell MacOs to trust it.
 
-Install the protobuf compiler from here: https://github.com/protocolbuffers/protobuf/releases.  Do not get the language specific package, get the platform specific package, 
-for example, https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protoc-3.17.3-osx-x86_64.zip.  Execute it once while holding down the "Option" key so you can tell MacOs to trust it.
+Obtain the grpc java plugin to the protoc compiler here: 
+https://repo1.maven.org/maven2/io/grpc/protoc-gen-grpc-java/1.38.1/ .  Rename the download to 
+`protoc-gen-grpc-java` make it executable, _and put it in the same directory as protoc_.  
+Execute it once while holding down the "Option" key so you can tell MacOs to trust it.
+
+Edit `generate-audio-processing-service-java.sh` and set PROTOC_PATH to the directory that 
+contains `protoc` and `protoc-gen-grpc-java`. You can now generate the java components of 
+the audio processing service by running the script.
+
+
