@@ -23,7 +23,9 @@ public class SignalSimulator {
         ArgumentParser parser = ArgumentParsers.newFor("SignalSimulator").build().defaultHelp(true)
                 .description("Generate sound samples and send them to Hazelcast Jet");
         parser.addArgument("--disableHazelcast").type(Boolean.class).required(false).setDefault(Boolean.FALSE)
-                .setConst(Boolean.TRUE).nargs("?");
+                .setConst(Boolean.TRUE).nargs("?").help("disable hazelcast connection for testing purposes");
+        parser.addArgument("--generator-config").required(true).help("the path to a json file containing the signal generator configuration.");
+
         Namespace ns = null;
         try {
             ns = parser.parseArgs(args);
@@ -33,6 +35,7 @@ public class SignalSimulator {
         }
 
         boolean disableHazelcast = ns.getBoolean("disableHazelcast");
+        String configFile = ns.getString("generator_config");
 
         HazelcastInstance hz;
         IMap<Integer, AudioSample> map = null;
@@ -45,7 +48,7 @@ public class SignalSimulator {
         ObjectMapper mapper = new ObjectMapper();
         SignalSimulator ss = null;
         try {
-            ss = mapper.readValue(new File("SignalSimulator.json"), SignalSimulator.class);
+            ss = mapper.readValue(new File(configFile), SignalSimulator.class);
         } catch (IOException e) {
             e.printStackTrace(System.err);
             System.exit(1);

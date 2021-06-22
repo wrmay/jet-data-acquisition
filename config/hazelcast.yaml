@@ -64,7 +64,7 @@ hazelcast:
 #    property.name: value
   map:
       audio:
-        in-memory-format: OBJECT
+        in-memory-format: BINARY
         backup-count: 1
         event-journal:
           enabled: true

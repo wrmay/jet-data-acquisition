@@ -7,22 +7,31 @@ services:
       volumes:
         - "./config:/etc/hazelcast"
       
-    jetmc: 
-      image: hazelcast/hazelcast-jet-management-center:4.3.1
-      environment: 
-        - MC_LICENSE_KEY 
-        - MC_CLIENT_CONFIG=/etc/hazelcast/hazelcast-client.xml
-      volumes:
-        - "./config:/etc/hazelcast"
-      ports:
-        - "8081:8081"
+    # jetmc: 
+    #   image: hazelcast/hazelcast-jet-management-center:4.3.1
+    #   environment: 
+    #     - MC_LICENSE_KEY 
+    #     - MC_CLIENT_CONFIG=/etc/hazelcast/hazelcast-client.xml
+    #   volumes:
+    #     - "./config:/etc/hazelcast"
+    #   ports:
+    #     - "8081:8081"
 
     mc:
       image: hazelcast/management-center:4.2021.06
       ports:
         - "8080:8080"
 
-
+    signalgen:
+      image: openjdk:11.0-jre-slim
+      volumes: 
+        - ".:/root/jet-data-acquisition"
+      command: ["java", "-cp", 
+        "/root/jet-data-acquisition/simple-signal-generator/target/simple-signal-generator-1.0-SNAPSHOT.jar:/root/jet-data-acquisition/simple-signal-generator/target/dependency/*",
+        "-Dhazelcast.client.config=/root/jet-data-acquisition/config/hazelcast-client.xml",
+        "com.sorintlab.tone.SignalSimulator",
+        "--generator-config=/root/jet-data-acquisition/config/SignalSimulator.json"
+        ]
 # secrets:
 #   jet-license-key:
 #     file: .jet-license-key
