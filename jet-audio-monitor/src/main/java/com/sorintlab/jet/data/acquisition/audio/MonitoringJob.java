@@ -7,13 +7,11 @@ import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.Job;
 import com.hazelcast.jet.config.JobConfig;
-import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.grpc.GrpcService;
 import com.hazelcast.jet.grpc.GrpcServices;
 import com.hazelcast.jet.pipeline.*;
 import io.grpc.ManagedChannelBuilder;
 
-import java.math.BigInteger;
 import java.util.Map;
 
 public class MonitoringJob {

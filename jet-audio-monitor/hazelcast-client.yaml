@@ -1,5 +1,0 @@
-hazelcast-client:
-  cluster-name: jet
-  network:
-    cluster-members:
-      - localhost
