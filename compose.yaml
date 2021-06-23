@@ -1,6 +1,7 @@
 services:
     jet:
-      image: hazelcast/hazelcast-jet-enterprise:4.3.1
+      build:
+        context: jetgrpc
       environment:
         - JET_LICENSE_KEY 
         - JAVA_OPTS=-Dhazelcast.config=/etc/hazelcast/hazelcast.yaml
@@ -39,6 +40,19 @@ services:
       command: python audio_processor.py 
       ports:
         - "9091:9091"
-# secrets:
-#   jet-license-key:
-#     file: .jet-license-key
+
+    submitjob:
+      # image: hazelcast/hazelcast-jet:4.3.1
+      build:
+        context: jetgrpc
+      profiles:
+        - dontstart
+      environment: 
+        - JET_LICENSE_KEY
+      volumes:
+        - "./jet-audio-monitor:/root/jet-audio-monitor"
+      command: ["/opt/hazelcast-jet-enterprise/bin/jet", "submit", 
+        "-t=jet@jet",
+        "-c=com.sorintlab.jet.data.acquisition.audio.MonitoringJob",
+        "-v",
+         "/root/jet-audio-monitor/target/jet-audio-monitor-1.0-SNAPSHOT.jar" ]

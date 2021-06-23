@@ -17,23 +17,23 @@ import java.util.Map;
 public class MonitoringJob {
     public static void main(String []args){
 
-        JetInstance jet = Jet.newJetInstance();
+        JetInstance jet = Jet.bootstrappedInstance();
 
-        Pipeline p = buildPipeLine(9090);
+        Pipeline p = buildPipeLine("audioservice", 9091);
 
         JobConfig config = new JobConfig().setName("audio-monitor").addClass(MonitoringJob.class);
         Job job = jet.newJob(p, config);
         // job.join();
     }
 
-    static Pipeline buildPipeLine(int grpcPort){
+    static Pipeline buildPipeLine(String grpcHost, int grpcPort){
         Pipeline pipeline = Pipeline.create();
         StreamStage<Map.Entry<Integer, AudioSample>> audioSamples = pipeline.readFrom(Sources.<Integer, AudioSample>mapJournal("audio",
                 JournalInitialPosition.START_FROM_CURRENT)).withTimestamps(item -> item.getValue().getTimestamp(), 5000);
 
         ServiceFactory<?, ? extends GrpcService<AudioProcessor.AudioSample, AudioProcessor.AudioSummary>> audioService =
                 GrpcServices.bidirectionalStreamingService(
-                        () -> ManagedChannelBuilder.forAddress("localhost", grpcPort).usePlaintext(),
+                        () -> ManagedChannelBuilder.forAddress(grpcHost, grpcPort).usePlaintext(),
                         channel -> AudioAnalyzerGrpc.newStub(channel)::computeSummary
                 );
 
