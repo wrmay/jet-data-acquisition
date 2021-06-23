@@ -32,6 +32,13 @@ services:
         "com.sorintlab.tone.SignalSimulator",
         "--generator-config=/root/jet-data-acquisition/config/SignalSimulator.json"
         ]
+
+    audioservice:
+      build:
+        context: audio-processing-service-python
+      command: python audio_processor.py 
+      ports:
+        - "9091:9091"
 # secrets:
 #   jet-license-key:
 #     file: .jet-license-key

@@ -41,6 +41,6 @@ class AudioProcessor(audio_processor_pb2_grpc.AudioAnalyzerServicer):
 if __name__ == '__main__':
     server = grpc.server(concurrent.futures.ThreadPoolExecutor(max_workers=10))
     audio_processor_pb2_grpc.add_AudioAnalyzerServicer_to_server(AudioProcessor(), server)
-    server.add_insecure_port('[::]:9090')
-    server.start()
+    server.add_insecure_port('[::]:9091')
+    server.start()    
     server.wait_for_termination()
