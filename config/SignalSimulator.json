@@ -2,17 +2,17 @@
     "generators": [
         {
             "id" : 1,
-            "amplitude": [11000,11000],
-            "frequency": [1024,9000],
+            "amplitude": [11000,11000,11000],
+            "frequency": [1024,9000,8000],
             "sampleRate": 200000,
-            "phase": [0,0]
+            "phase": [0,0,0]
         },
         {
             "id" : 2,
-            "amplitude": [11000],
-            "frequency": [8000],
+            "amplitude": [11000,8000],
+            "frequency": [8000,4000],
             "sampleRate": 200000,
-            "phase": [0]
+            "phase": [0,0]
         }
     ]
 }
