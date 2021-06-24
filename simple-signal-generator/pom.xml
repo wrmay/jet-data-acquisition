@@ -5,11 +5,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.sorintlab</groupId>
-  <artifactId>jet-audio-monitor</artifactId>
+  <artifactId>simple-signal-generator</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
 
-  <name>jet-audio-monitor</name>
+  <name>simple-signal-generator</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,37 +18,19 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.sorintlab</groupId>
-      <artifactId>audio-processing-service</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.12.2</version>
     </dependency>
     <dependency>
-      <groupId>com.sorintlab</groupId>
-      <artifactId>simple-signal-generator</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <groupId>net.sourceforge.argparse4j</groupId>
+      <artifactId>argparse4j</artifactId>
+      <version>0.8.1</version>
     </dependency>
     <dependency>
       <groupId>com.hazelcast.jet</groupId>
       <artifactId>hazelcast-jet</artifactId>
-      <version>4.3</version>
-      <scope>provided</scope>
-    </dependency>
-    <!-- prometheus client -->
-    <dependency>
-      <groupId>io.prometheus</groupId>
-      <artifactId>simpleclient</artifactId>
-      <version>0.10.0</version>
-    </dependency>
-    <dependency>
-      <groupId>io.prometheus</groupId>
-      <artifactId>simpleclient_httpserver</artifactId>
-      <version>0.10.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.hazelcast.jet</groupId>
-      <artifactId>hazelcast-jet-grpc</artifactId>
-      <version>4.3</version>
-      <scope>provided</scope>
+      <version>4.4</version>
     </dependency>
   </dependencies>
 
@@ -100,18 +81,17 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.2.4</version>
-        <configuration>
-          <!-- put your configurations here -->
-          <createDependencyReducedPom>false</createDependencyReducedPom>
-        </configuration>
+        <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
+            <id>copy-dependencies</id>
             <phase>package</phase>
             <goals>
-              <goal>shade</goal>
+              <goal>copy-dependencies</goal>
             </goals>
+            <configuration>
+              <!-- configure the plugin here -->
+            </configuration>
           </execution>
         </executions>
       </plugin>

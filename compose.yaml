@@ -1,0 +1,71 @@
+services:
+    jet:
+      build:
+        context: jetgrpc
+      environment:
+        - JET_LICENSE_KEY 
+        - JAVA_OPTS=-Dhazelcast.config=/etc/hazelcast/hazelcast.yaml
+      volumes:
+        - "./config:/etc/hazelcast"
+      
+    # jetmc: 
+    #   image: hazelcast/hazelcast-jet-management-center:4.3.1
+    #   environment: 
+    #     - MC_LICENSE_KEY 
+    #     - MC_CLIENT_CONFIG=/etc/hazelcast/hazelcast-client.xml
+    #   volumes:
+    #     - "./config:/etc/hazelcast"
+    #   ports:
+    #     - "8081:8081"
+
+    mc:
+      image: hazelcast/management-center:4.2021.06
+      ports:
+        - "8080:8080"
+
+    signalgen:
+      image: openjdk:11.0-jre-slim
+      volumes: 
+        - ".:/root/jet-data-acquisition"
+      working_dir: /root/jet-data-acquisition/logs
+      command: ["java", "-cp", 
+        "/root/jet-data-acquisition/simple-signal-generator/target/simple-signal-generator-1.0-SNAPSHOT.jar:/root/jet-data-acquisition/simple-signal-generator/target/dependency/*",
+        "-Dhazelcast.client.config=/root/jet-data-acquisition/config/hazelcast-client.xml",
+        "com.sorintlab.tone.SignalSimulator",
+        "--generator-config=/root/jet-data-acquisition/config/SignalSimulator.json"
+        ]
+
+    audioservice:
+      build:
+        context: audio-processing-service-python
+      command: python audio_processor.py 
+
+    prometheus:
+      volumes: 
+        - "./config:/etc/prometheus"
+      image: prom/prometheus:v2.28.0
+      ports:
+        - "9090:9090"
+
+    grafana:
+      image: grafana/grafana:7.5.9
+      ports:
+        - "3000:3000"
+
+    submitjob:
+      # image: hazelcast/hazelcast-jet:4.3.1
+      build:
+        context: jetgrpc
+      profiles:
+        - dontstart
+      environment: 
+        - JET_LICENSE_KEY
+      volumes:
+        - "./jet-audio-monitor:/root/jet-audio-monitor"
+      command: ["/opt/hazelcast-jet-enterprise/bin/jet", "submit", 
+        "-t=jet@jet",
+        "-c=com.sorintlab.jet.data.acquisition.audio.MonitoringJob",
+        "-v",
+         "/root/jet-audio-monitor/target/jet-audio-monitor-1.0-SNAPSHOT.jar",
+         "audioservice",
+         "9091" ]

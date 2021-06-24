@@ -9,4 +9,6 @@ venv/
 .DS_Store
 *.wav
 *.log
-.jet-license-key
+bin/
+.env
+*.code-workspace
