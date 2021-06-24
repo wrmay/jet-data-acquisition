@@ -34,8 +34,10 @@ class AudioProcessor(audio_processor_pb2_grpc.AudioAnalyzerServicer):
         selector = spec > 328
         freqs = np.nonzero(selector)[0]
         mags = spec[selector]
-        return [audio_processor_pb2.SpectrumComponent(frequency=freqs[i], amplitude=int(mags[i])) for i in
+        result =  [audio_processor_pb2.SpectrumComponent(frequency=freqs[i], amplitude=int(mags[i])) for i in
                 range(len(freqs))]
+        print(f"SPECTRUM HAS {len(result)} COMPONENTS")
+        return result
 
 
 if __name__ == '__main__':

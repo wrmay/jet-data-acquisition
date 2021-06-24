@@ -7,6 +7,8 @@ services:
         - JAVA_OPTS=-Dhazelcast.config=/etc/hazelcast/hazelcast.yaml
       volumes:
         - "./config:/etc/hazelcast"
+      ports:
+        - "7070:7070"
       
     # jetmc: 
     #   image: hazelcast/hazelcast-jet-management-center:4.3.1
@@ -41,6 +43,16 @@ services:
       ports:
         - "9091:9091"
 
+    prometheus:
+      image: prom/prometheus:v2.28.0
+
+    grafana:
+      image: grafana/grafana:7.5.9
+      ports:
+        - "3000:3000"
+      profiles:
+        - dontstart
+
     submitjob:
       # image: hazelcast/hazelcast-jet:4.3.1
       build:
@@ -55,4 +67,6 @@ services:
         "-t=jet@jet",
         "-c=com.sorintlab.jet.data.acquisition.audio.MonitoringJob",
         "-v",
-         "/root/jet-audio-monitor/target/jet-audio-monitor-1.0-SNAPSHOT.jar" ]
+         "/root/jet-audio-monitor/target/jet-audio-monitor-1.0-SNAPSHOT.jar",
+         "audioservice",
+         "9091" ]
