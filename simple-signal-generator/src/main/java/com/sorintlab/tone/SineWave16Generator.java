@@ -22,10 +22,10 @@ public class SineWave16Generator implements Runnable {
     private static final int SAMPLE_SECONDS = 5;
 
     private int id;
-    private short amplitude;
-    private int   frequency;    // cycles per second
+    private short []amplitude;
+    private int   []frequency;    // cycles per second
     private int sampleRate;     // samples per second
-    private double phase;      //in radians
+    private double []phase;      //in radians
 
     private ByteBuffer  sampleBytes;
     private ShortBuffer secondBuffer;
@@ -35,11 +35,11 @@ public class SineWave16Generator implements Runnable {
         return id;
     }
 
-    public short getAmplitude() {
+    public short []getAmplitude() {
         return amplitude;
     }
 
-    public int getFrequency() {
+    public int []getFrequency() {
         return frequency;
     }
 
@@ -47,7 +47,7 @@ public class SineWave16Generator implements Runnable {
         return sampleRate;
     }
 
-    public double getPhase() {
+    public double []getPhase() {
         return phase;
     }
     
@@ -55,11 +55,11 @@ public class SineWave16Generator implements Runnable {
         this.id = id;
     }
 
-    public void setAmplitude(short amplitude) {
+    public void setAmplitude(short []amplitude) {
         this.amplitude = amplitude;
     }
 
-    public void setFrequency(int frequency) {
+    public void setFrequency(int []frequency) {
         this.frequency = frequency;
     }
 
@@ -67,13 +67,13 @@ public class SineWave16Generator implements Runnable {
         this.sampleRate = sampleRate;
     }
 
-    public void setPhase(double phase) {
+    public void setPhase(double []phase) {
         this.phase = phase;
     }
 
     
 
-    public SineWave16Generator(short amplitude, int frequency, int sampleRate, double phase) {
+    public SineWave16Generator(short []amplitude, int []frequency, int sampleRate, double []phase) {
         this.amplitude = amplitude;
         this.frequency = frequency;
         this.sampleRate = sampleRate;
@@ -110,10 +110,13 @@ public class SineWave16Generator implements Runnable {
     }
 
     private short sinwave(int n){
-        double angle = phase + (n * Math.PI * 2.0d * (double) frequency) / (double) sampleRate;
-        double val = Math.sin(angle);
+        double result = 0;
+        for(int i=0;i < amplitude.length; ++i){
+            double angle = phase[i] + (n * Math.PI * 2.0d * (double) frequency[i]) / (double) sampleRate;
+            double val = Math.sin(angle);
 
-        double result = amplitude * val;
+            result += amplitude[i] * val;
+        }
         return (short) result;
     }
 
@@ -130,7 +133,6 @@ public class SineWave16Generator implements Runnable {
     @Override
     public void run() {
         try {
-            System.out.println("SENT: " + id);
             secondBuffer.clear();
             writeSamples(secondBuffer, s);
             secondBuffer.flip();

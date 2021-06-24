@@ -42,7 +42,7 @@ public class MonitoringJob {
         HTTPServer httpServer;
 
         public PrometheusContext(){
-            audioComponentGauge = Gauge.build().name("audio_components").help("audio signal components").labelNames("ordinal").register();
+            audioComponentGauge = Gauge.build().name("audio_components").help("audio signal components").labelNames("ordinal","source").register();
             try {
                 httpServer = new HTTPServer(7070);
             } catch(IOException iox){
@@ -59,7 +59,7 @@ public class MonitoringJob {
             int i=0;
             for(AudioProcessor.SpectrumComponent component: summary.getComponentsList()){
                 i++;
-                audioComponentGauge.labels(Integer.valueOf(i).toString()).set(component.getFrequency());
+                audioComponentGauge.labels(Integer.valueOf(i).toString(), Integer.valueOf(summary.getId()).toString()).set(component.getFrequency());
             }
         }
 

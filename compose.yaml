@@ -7,8 +7,6 @@ services:
         - JAVA_OPTS=-Dhazelcast.config=/etc/hazelcast/hazelcast.yaml
       volumes:
         - "./config:/etc/hazelcast"
-      ports:
-        - "7070:7070"
       
     # jetmc: 
     #   image: hazelcast/hazelcast-jet-management-center:4.3.1
@@ -29,6 +27,7 @@ services:
       image: openjdk:11.0-jre-slim
       volumes: 
         - ".:/root/jet-data-acquisition"
+      working_dir: /root/jet-data-acquisition/logs
       command: ["java", "-cp", 
         "/root/jet-data-acquisition/simple-signal-generator/target/simple-signal-generator-1.0-SNAPSHOT.jar:/root/jet-data-acquisition/simple-signal-generator/target/dependency/*",
         "-Dhazelcast.client.config=/root/jet-data-acquisition/config/hazelcast-client.xml",
@@ -40,18 +39,18 @@ services:
       build:
         context: audio-processing-service-python
       command: python audio_processor.py 
-      ports:
-        - "9091:9091"
 
     prometheus:
+      volumes: 
+        - "./config:/etc/prometheus"
       image: prom/prometheus:v2.28.0
+      ports:
+        - "9090:9090"
 
     grafana:
       image: grafana/grafana:7.5.9
       ports:
         - "3000:3000"
-      profiles:
-        - dontstart
 
     submitjob:
       # image: hazelcast/hazelcast-jet:4.3.1
