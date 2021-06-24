@@ -20,7 +20,7 @@ public class AudioSample implements Serializable {
 }
 ```
 
-The Jet pipeline running within the IMDG/Jet node treats the "puts" to the IMDG map as input events.  These are routed to a service that is hosted in python and running on the same machine (it could also be on a different host).  Using gRPC's 2 way event streaming protocol, `AudioSample` objects are serialized using protobuf protocol and sent to the (python) Audio Analyzer service.  The Audio Analyzer service performs the requisite calculations and sends back one `AudioSummary` for each source + second (i.e. for each input event).  The Jet pipeline then prints the summaries to the console.
+The Jet pipeline running within the IMDG/Jet node treats the "puts" to the IMDG map as input events.  These are routed to a service that is hosted in python and running on the same machine (it could also be on a different host).  Using gRPC's 2 way event streaming protocol, `AudioSample` objects are serialized using protobuf protocol and sent to the (python) Audio Analyzer service.  The Audio Analyzer service performs the requisite calculations and sends back one `AudioSummary` for each source + second (i.e. for each input event).  The Jet pipeline then exports the summaries to the Prometheus time series DB and prints them to the console.
 
 In a more realistic application, the Jet pipeline would  forward the summaries on to a different system for further analysis and /or perform monitoring and alerting directly within the pipeline.
 
@@ -127,6 +127,12 @@ To view the logs, use `docker-compose logs --follow`. Press ctrl-c to exit.
 
 This will start Jet, the signal generator, the Hazelcast Management Center , the python audio processor gRPC service , the Prometheus time series DB and Grafana.  It does not deploy the Jet job.
 
+
+
+Observe that the signal generator writes sample wav files into the "logs" folder.  This allows you to listen to the audio signals if desired.
+
+
+
 The Hazelcast Management Center can be accessed on Port 8080.  The following images show how to log in and view the cluster.
 
 In a browser, go to "localhost:8080".
@@ -172,7 +178,52 @@ Grafana will need to be configured.  Go to localhost:3000 in the browser and fol
 
 ### Update the Signal Generator
 
-Now we can change the signal generator
+Now we can change the signal generator and see the changes reflected in the resulting graphs. 
+
+First change the configuration file, `config/SignalSimulator.json`.   In the example below, a 3rd component is added to source 2.  _Be sure that the `phase`, `amplitude`, and `frequency` arrays all have the same number of entries!_
+
+```
+{
+    "generators": [
+        {
+            "id" : 1,
+            "amplitude": [11000,11000,11000],
+            "frequency": [1024,9000,8000],
+            "sampleRate": 200000,
+            "phase": [0,0,0]
+        },
+        {
+            "id" : 2,
+            "amplitude": [11000,8000,8000],
+            "frequency": [8000,4000,6000],
+            "sampleRate": 200000,
+            "phase": [0,0,0]
+        }
+    ]
+}
+```
+
+Now restart the signal generator.
+
+```
+docker-compose restart signalgen
+```
+
+After a while, you should see a new line appear on the graph for source 2.
+
+![](screenshots/Snapshot 24.png)
+
+
+
+### Stop Everything
+
+```
+docker-compose down
+```
+
+
+
+This concludes the walk-through.
 
 
 
@@ -182,11 +233,35 @@ Now we can change the signal generator
 
 ### Project Contents
 
-TODO
+| File or Folder                  | Description                                                  |
+| ------------------------------- | ------------------------------------------------------------ |
+| audio-processing-service-java   | The java stubs and skeletons required to call the audio processing service from Jet. All files in this folder are generated from the protocol definition. |
+| audio-processing-service-python | All of the code necessary to run the python audio processing service.  All of the logic is in "audio_processor.py".  The other python files are generated from the protocol definition.  Dockerfile contains the instructions for building a Docker image that runs the audio processor. |
+| config                          | All of the confguration files including "SignalSimulator.json" which is used by the signal generator, "hazelcast-client.xml" which controls how the signal generator connects to the Jet cluster, "hazelcast.yaml", which contains the configuration for the "audio" map, which acts a bridge between Jet and the signal simulator, and "prometheus.yaml", which conains the information necessary for the Prometheus scraper to find the Jet instances. |
+| jet-audio-monitor               | The Jet job definition.                                      |
+| jetgrpc                         | Contains the configuration and Docker file necessary to build a grpc enabled Hazelcast Jet image. |
+| logs                            | The location to which the signal generator writes sample .wav files. |
+| screenshots                     | Part of this documentation.                                  |
+| simple-signal-generator         | The signal generator java project.  Note the signal generator is a Hazelcast client. |
+| test-code                       | Code that was useful for testing and developing this project. |
+| audio_processor.proto           | Protobuf definition of the interface provided by the audio processor service. |
+| compose.yaml                    | Instructions to "docker-compose" for running this project.   |
+
+
 
 ### Regenerating the gRPC stubs and skeletons for Python
 
-TODO
+For python you will need the grpc tools package.  The best way to do this is to set up a virtual environment and then use the "requirements.txt" file in "audio-processing-service-python" to install the needed packages.  For example:
+
+```
+virtualenv -p  -p /usr/local/Cellar/python\@3.9/3.9.5/bin/python3 venv
+. venv/bin/activate
+pip install -r audio-processing-service-python/requirements.txt
+```
+
+Once you have the tools installed, run `generate-audio-processing-service-python.sh` to regenerate the stubs and skeletons.  This will overwwrite the previously generated files but it will not harm "audio_processor.py".
+
+
 
 ### Regenerating gRPC stubs and skeletons for Java
 
@@ -202,5 +277,5 @@ Execute it once while holding down the "Option" key so you can tell MacOs to tru
 
 Edit `generate-audio-processing-service-java.sh` and set PROTOC_PATH to the directory that 
 contains `protoc` and `protoc-gen-grpc-java`. You can now generate the java components of 
-the audio processing service by running the script.
+the audio processing service by running the script: `generate-audio-processing-service-java.sh`
 
