@@ -137,12 +137,12 @@ The Hazelcast Management Center can be accessed on Port 8080.  The following ima
 
 In a browser, go to "localhost:8080".
 
-![](screenshots/Snapshot 4.png)
-![](screenshots/Snapshot 5.png)
-![](screenshots/Snapshot 10.png)
-![](screenshots/Snapshot 7.png)
-![](screenshots/Snapshot 8.png)
-![](screenshots/Snapshot 9.png)
+![](screenshots/Snapshot%204.png)
+![](screenshots/Snapshot%205.png)
+![](screenshots/Snapshot%2010.png)
+![](screenshots/Snapshot%207.png)
+![](screenshots/Snapshot%208.png)
+![](screenshots/Snapshot%209.png)
 
 
 
@@ -156,23 +156,23 @@ docker-compose run submitjob
 
 You should now be able to see the running Jet job in the Management Center as show below.
 
-![](screenshots/Snapshot 12.png)
-![](screenshots/Snapshot 13.png)
-![](screenshots/Snapshot 14.png)
+![](screenshots/Snapshot%2012.png)
+![](screenshots/Snapshot%2013.png)
+![](screenshots/Snapshot%2014.png)
 
 ### View the results in Grafana
 
 Grafana will need to be configured.  Go to localhost:3000 in the browser and follow the instructions below.
 
-![](screenshots/Snapshot 15.png)
-![](screenshots/Snapshot 16.png)
-![](screenshots/Snapshot 17.png)
-![](screenshots/Snapshot 18.png)
-![](screenshots/Snapshot 19.png)
-![](screenshots/Snapshot 20.png)
-![](screenshots/Snapshot 21.png)
-![](screenshots/Snapshot 22.png)
-![](screenshots/Snapshot 23.png)
+![](screenshots/Snapshot%2015.png)
+![](screenshots/Snapshot%2016.png)
+![](screenshots/Snapshot%2017.png)
+![](screenshots/Snapshot%2018.png)
+![](screenshots/Snapshot%2019.png)
+![](screenshots/Snapshot%2020.png)
+![](screenshots/Snapshot%2021.png)
+![](screenshots/Snapshot%2022.png)
+![](screenshots/Snapshot%2023.png)
 
 
 
@@ -211,7 +211,7 @@ docker-compose restart signalgen
 
 After a while, you should see a new line appear on the graph for source 2.
 
-![](screenshots/Snapshot 24.png)
+![](screenshots/Snapshot%2024.png)
 
 
 
