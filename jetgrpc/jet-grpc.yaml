@@ -1,0 +1,22 @@
+---
+RecipeFormatVersion: '2020-01-25'
+ComponentName: com.hazelcast.jet
+ComponentVersion: '4.5.0'
+ComponentDescription: Hazelcast Jet with gRPC Module
+ComponentPublisher: Hazelcast
+ComponentConfiguration:
+  DefaultConfiguration: {}
+Manifests:
+  - Platform:
+      os: linux
+    Lifecycle:
+      Startup: 
+        Script: "nohup bash {artifacts:decompressedPath}/hazelcast-jet-4.5-grpc/hazelcast-jet-4.5-grpc/bin/jet-start > /tmp/hazelcast-jet.log 2>&1 &"
+        Setenv: 
+          JAVA_OPTS: -Dhazelcast.config={artifacts:path}/hazelcast-audio-processor.yaml
+      Shutdown: 
+        Script: "bash {artifacts:decompressedPath}/hazelcast-jet-4.5-grpc/hazelcast-jet-4.5-grpc/bin/jet-stop"
+    Artifacts:
+      - URI: s3://greengrass-components-691990859209-us-east-2/hazelcast-jet-4.5-grpc.zip 
+        Unarchive: ZIP
+      - URI: s3://greengrass-components-691990859209-us-east-2/hazelcast-audio-processor.yaml
