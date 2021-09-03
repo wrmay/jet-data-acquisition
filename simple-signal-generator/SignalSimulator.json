@@ -1,0 +1,22 @@
+{
+    "awsIoTCoreMessagingEndpoint" :  "a17sav9lrv8l6k-ats.iot.us-east-2.amazonaws.com",
+    "clientCertFile" :  "auth/2ffa1c1a83-certificate.pem.crt",
+    "clientPrivateKeyFile" :  "auth/2ffa1c1a83-private.pem.key",
+    "topic" :  "TEST",
+    "generators": [
+        {
+            "id" : 1,
+            "amplitude": [11000,11000,11000],
+            "frequency": [1024,9000,8000],
+            "sampleRate": 200000,
+            "phase": [0,0,0]
+        },
+        {
+            "id" : 2,
+            "amplitude": [11000,8000],
+            "frequency": [8000,4000],
+            "sampleRate": 200000,
+            "phase": [0,0]
+        }
+    ]
+}

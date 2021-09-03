@@ -1,8 +1,11 @@
 package com.sorintlab.tone;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.hazelcast.map.IMap;
 import com.sorintlab.jet.data.acquisition.audio.AudioSample;
+
+import software.amazon.awssdk.crt.mqtt.MqttClientConnection;
+import software.amazon.awssdk.crt.mqtt.MqttMessage;
+import software.amazon.awssdk.crt.mqtt.QualityOfService;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
@@ -14,6 +17,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Generates 16bit sine wave samples with configurable frequency, amplitude, phase and sample rate
@@ -27,9 +31,17 @@ public class SineWave16Generator implements Runnable {
     private int sampleRate;     // samples per second
     private double []phase;      //in radians
 
+    @JsonIgnore
     private ByteBuffer  sampleBytes;
+
+    @JsonIgnore
     private ShortBuffer secondBuffer;
+
+    @JsonIgnore
     private int s;
+
+    @JsonIgnore
+    MqttClientConnection connection;
 
     public int getId(){
         return id;
@@ -70,8 +82,6 @@ public class SineWave16Generator implements Runnable {
     public void setPhase(double []phase) {
         this.phase = phase;
     }
-
-    
 
     public SineWave16Generator(short []amplitude, int []frequency, int sampleRate, double []phase) {
         this.amplitude = amplitude;
@@ -120,11 +130,8 @@ public class SineWave16Generator implements Runnable {
         return (short) result;
     }
 
-    @JsonIgnore
-    private IMap<Integer, AudioSample> map;
-
-    public void setMap(IMap<Integer, AudioSample> map){
-        this.map = map;
+    public void init(MqttClientConnection connection){
+        this.connection = connection;
         this.secondBuffer = ShortBuffer.allocate(sampleRate);
         this.sampleBytes = ByteBuffer.allocate(sampleRate * SAMPLE_SECONDS * 2);
         this.sampleBytes.order(ByteOrder.LITTLE_ENDIAN);
@@ -137,7 +144,12 @@ public class SineWave16Generator implements Runnable {
             writeSamples(secondBuffer, s);
             secondBuffer.flip();
             AudioSample sample = new AudioSample(id, System.currentTimeMillis(), secondBuffer.array());
-            map.put(sample.getId(), sample);
+
+            CompletableFuture<Integer> published = connection.publish(new MqttMessage("TEST", "AUDIO".getBytes(), QualityOfService.AT_LEAST_ONCE, false));
+            published.get();
+            System.out.println("It didn' blow up!");
+
+            //map.put(sample.getId(), sample);
 
             if (s < SAMPLE_SECONDS) {
                 writeSamples(sampleBytes, s);
