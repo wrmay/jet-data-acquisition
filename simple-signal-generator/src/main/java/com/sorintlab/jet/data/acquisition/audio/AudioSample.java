@@ -46,4 +46,22 @@ public class AudioSample implements Serializable {
                 ", sample=" + Arrays.toString(sample) +
                 '}';
     }
+
+    public static int requiredBytes(int sampleSize){
+        return 4 + 8 + 4 + 2 * sampleSize;
+    }
+
+    /**
+     * The provider of the buffer must ensure that it is positioned 
+     * correctly and is ready for reading.  
+     * 
+     * The provider of the buffer also specified the byte ordering
+     */
+    public void readFromByteBuffer(ByteBuffer buffer){
+        this.id = buffer.getInt();
+        this.timestamp = buffer.getLong();
+        int sampleSize = buffer.getInt();
+        this.sample = new short[sampleSize];
+        for(int i=0;i<sampleSize;++i) sample[i] = buffer.getShort();
+    }
 }

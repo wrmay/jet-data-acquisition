@@ -16,7 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.ShortBuffer;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -35,7 +34,7 @@ public class SineWave16Generator implements Runnable {
     private ByteBuffer  sampleBytes;
 
     @JsonIgnore
-    private ShortBuffer secondBuffer;
+    private ByteBuffer secondBuffer;
 
     @JsonIgnore
     private int s;
@@ -101,7 +100,7 @@ public class SineWave16Generator implements Runnable {
      * @param s identifies the particular second to write. s is external to the Generator so the same sample can be
      *          written multiple times (e.g. to different buffers)
      */
-    public void writeSamples(ByteBuffer buffer, int s){
+    public void writeAudioSample(ByteBuffer buffer, int s){
         for(int i=0; i < sampleRate; ++i){
             int n = s * sampleRate + i;
             short w = sinwave(n);
@@ -110,17 +109,21 @@ public class SineWave16Generator implements Runnable {
 
     }
 
-    public void writeSamples(ShortBuffer buffer, int s){
-        for(int i=0; i < sampleRate; ++i){
-            int n = s * sampleRate + i;
-            short w = sinwave(n);
-            buffer.put(w);
-        }
-
+    public void writeSerializedAudioSampleObject(ByteBuffer buffer, int s){
+        // write the following
+        // an int identifying the source
+        // a long timestamp
+        // an int indicating the size of the short[] that contains the samples
+        // a short for each value in the sample
+        buffer.putInt(id);
+        buffer.putLong(System.currentTimeMillis());
+        buffer.putInt(sampleRate * 1);
+        writeAudioSample(buffer, s);
     }
 
     private short sinwave(int n){
         double result = 0;
+        // loop over each generator and calculate the output signal by adding the signal from each generator
         for(int i=0;i < amplitude.length; ++i){
             double angle = phase[i] + (n * Math.PI * 2.0d * (double) frequency[i]) / (double) sampleRate;
             double val = Math.sin(angle);
@@ -132,7 +135,7 @@ public class SineWave16Generator implements Runnable {
 
     public void init(MqttClientConnection connection){
         this.connection = connection;
-        this.secondBuffer = ShortBuffer.allocate(sampleRate);
+        this.secondBuffer = ByteBuffer.allocate(AudioSample.requiredBytes(sampleRate * 1));
         this.sampleBytes = ByteBuffer.allocate(sampleRate * SAMPLE_SECONDS * 2);
         this.sampleBytes.order(ByteOrder.LITTLE_ENDIAN);
     }
@@ -141,18 +144,14 @@ public class SineWave16Generator implements Runnable {
     public void run() {
         try {
             secondBuffer.clear();
-            writeSamples(secondBuffer, s);
+            writeSerializedAudioSampleObject(secondBuffer, s);
             secondBuffer.flip();
-            AudioSample sample = new AudioSample(id, System.currentTimeMillis(), secondBuffer.array());
-
-            CompletableFuture<Integer> published = connection.publish(new MqttMessage("TEST", "AUDIO".getBytes(), QualityOfService.AT_LEAST_ONCE, false));
-            published.get();
-            System.out.println("It didn' blow up!");
-
-            //map.put(sample.getId(), sample);
+            CompletableFuture<Integer> published = connection.publish(new MqttMessage("TEST", secondBuffer.array(), QualityOfService.AT_LEAST_ONCE, false));
+            int messageNum = published.get();
+            System.out.println("published message " + messageNum + " to TEST topic.");
 
             if (s < SAMPLE_SECONDS) {
-                writeSamples(sampleBytes, s);
+                writeAudioSample(sampleBytes, s);
             }
 
             s += 1;

@@ -2,14 +2,10 @@ package com.sorintlab.tone;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
+import java.util.Random;
+import java.util.concurrent.*;
 // import java.util.concurrent.ScheduledThreadPoolExecutor;
 // import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +23,7 @@ import software.amazon.awssdk.iot.AwsIotMqttConnectionBuilder;
 public class SignalSimulator {
 
     // settings
-    private SineWave16Generator []generators;
+    private SineWave16Generator[] generators;
     private String awsIoTCoreMessagingEndpoint;
     private String clientCertFile;
     private String clientPrivateKeyFile;
@@ -35,7 +31,7 @@ public class SignalSimulator {
 
     // internal state
     @JsonIgnore
-    MqttClientConnection []mqttConnections;
+    MqttClientConnection mqttConnection;
 
 
     public static void main(String[] args) {
@@ -66,15 +62,13 @@ public class SignalSimulator {
         final SignalSimulator finalss = ss;
 
         // creates an MQTT connection for each generator
-        ss.initializeConnections();
+        ss.initializeConnection();
 
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(10);
-        Runtime.getRuntime().addShutdownHook(new Thread(){
-            public void run(){
-                executor.shutdown();
-                finalss.closeConnections();
-            }
-        });
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            executor.shutdown();
+            finalss.closeConnection();
+        }));
         ss.start(executor);
     }
 
@@ -118,51 +112,48 @@ public class SignalSimulator {
         this.topic = topic;
     }
 
-    private void start(ScheduledExecutorService executorService){
-        for(SineWave16Generator generator: generators){
-            executorService.scheduleAtFixedRate(generator, 0, 1, TimeUnit.SECONDS);
+    private void start(ScheduledExecutorService executorService) {
+        Random rand = new Random();
+        for (SineWave16Generator generator : generators) {
+            executorService.scheduleAtFixedRate(generator, rand.nextInt(1000), 1000, TimeUnit.MILLISECONDS);
         }
     }
 
-    private void initializeConnections(){
-        mqttConnections = new MqttClientConnection[generators.length];
-        for(int i=0; i< generators.length; ++i){
-            // TODO - I've no idea what an eventloopgroup is and have yet to see any documentation
-            // should it be shared ?
-            EventLoopGroup elGroup = new EventLoopGroup(1);
-            HostResolver resolver = new HostResolver(elGroup);
-            ClientBootstrap clientBootstrap = new ClientBootstrap(elGroup, resolver);
-            AwsIotMqttConnectionBuilder connectionBuilder = AwsIotMqttConnectionBuilder.newMtlsBuilderFromPath(clientCertFile, clientPrivateKeyFile);
-            mqttConnections[i] = connectionBuilder
+    private void initializeConnection() {
+        // TODO - I've no idea what an eventloopgroup is and have yet to see any documentation
+        // should it be shared ?
+        EventLoopGroup elGroup = new EventLoopGroup(1);
+        HostResolver resolver = new HostResolver(elGroup);
+        ClientBootstrap clientBootstrap = new ClientBootstrap(elGroup, resolver);
+        AwsIotMqttConnectionBuilder connectionBuilder = AwsIotMqttConnectionBuilder.newMtlsBuilderFromPath(clientCertFile, clientPrivateKeyFile);
+        mqttConnection = connectionBuilder
                 .withEndpoint(awsIoTCoreMessagingEndpoint)
                 .withPort((short) 443)
                 .withBootstrap(clientBootstrap)
                 .withClientId("fritos")
+                .withCleanSession(true)
                 .build();
 
-            generators[i].init(mqttConnections[i]);
+        for(SineWave16Generator generator: generators) generator.init(mqttConnection);
 
-            CompletableFuture<Boolean> connected = mqttConnections[i].connect();
-            try {
-                if (connected.get())
-                    System.out.println("Connected to existing session.");
-                else
-                    System.out.println("Connection to new session.");
+        CompletableFuture<Boolean> connected = mqttConnection.connect();
+        try {
+            if (connected.get())
+                System.out.println("Connected to existing session.");
+            else
+                System.out.println("Connection to new session.");
 
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            System.exit(1);
         }
     }
 
-    private void closeConnections(){
-        for(MqttClientConnection connection: mqttConnections){
-            try {
-                connection.disconnect().get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
+    private void closeConnection() {
+        try {
+            mqttConnection.disconnect().get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
         }
     }
 }
