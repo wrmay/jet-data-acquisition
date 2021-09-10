@@ -1,8 +1,4 @@
 {
-    "awsIoTCoreMessagingEndpoint" :  "a17sav9lrv8l6k-ats.iot.us-east-2.amazonaws.com",
-    "clientCertFile" :  "auth/2ffa1c1a83-certificate.pem.crt",
-    "clientPrivateKeyFile" :  "auth/2ffa1c1a83-private.pem.key",
-    "topic" :  "TEST",
     "generators": [
         {
             "id" : 1,

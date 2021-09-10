@@ -1,11 +1,8 @@
 package com.sorintlab.tone;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.hazelcast.map.IMap;
 import com.sorintlab.jet.data.acquisition.audio.AudioSample;
-
-import software.amazon.awssdk.crt.mqtt.MqttClientConnection;
-import software.amazon.awssdk.crt.mqtt.MqttMessage;
-import software.amazon.awssdk.crt.mqtt.QualityOfService;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
@@ -16,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Generates 16bit sine wave samples with configurable frequency, amplitude, phase and sample rate
@@ -39,29 +35,6 @@ public class SineWave16Generator implements Runnable {
     @JsonIgnore
     private int s;
 
-    @JsonIgnore
-    MqttClientConnection connection;
-
-    public int getId(){
-        return id;
-    }
-
-    public short []getAmplitude() {
-        return amplitude;
-    }
-
-    public int []getFrequency() {
-        return frequency;
-    }
-
-    public int getSampleRate() {
-        return sampleRate;
-    }
-
-    public double []getPhase() {
-        return phase;
-    }
-    
     public void setId(int id) {
         this.id = id;
     }
@@ -82,12 +55,12 @@ public class SineWave16Generator implements Runnable {
         this.phase = phase;
     }
 
-    public SineWave16Generator(short []amplitude, int []frequency, int sampleRate, double []phase) {
-        this.amplitude = amplitude;
-        this.frequency = frequency;
-        this.sampleRate = sampleRate;
-        this.phase = phase;
-    }
+//    public SineWave16Generator(short []amplitude, int []frequency, int sampleRate, double []phase) {
+//        this.amplitude = amplitude;
+//        this.frequency = frequency;
+//        this.sampleRate = sampleRate;
+//        this.phase = phase;
+//    }
 
     // probably needed for JSON deserialization
     public SineWave16Generator(){
@@ -109,18 +82,6 @@ public class SineWave16Generator implements Runnable {
 
     }
 
-    public void writeSerializedAudioSampleObject(ByteBuffer buffer, int s){
-        // write the following
-        // an int identifying the source
-        // a long timestamp
-        // an int indicating the size of the short[] that contains the samples
-        // a short for each value in the sample
-        buffer.putInt(id);
-        buffer.putLong(System.currentTimeMillis());
-        buffer.putInt(sampleRate * 1);
-        writeAudioSample(buffer, s);
-    }
-
     private short sinwave(int n){
         double result = 0;
         // loop over each generator and calculate the output signal by adding the signal from each generator
@@ -133,9 +94,13 @@ public class SineWave16Generator implements Runnable {
         return (short) result;
     }
 
-    public void init(MqttClientConnection connection){
-        this.connection = connection;
-        this.secondBuffer = ByteBuffer.allocate(AudioSample.requiredBytes(sampleRate * 1));
+    @JsonIgnore
+    private IMap<Integer, AudioSample> map;
+
+    public void setMap(IMap<Integer, AudioSample> map){
+        this.map = map;
+        this.secondBuffer = ByteBuffer.allocate(sampleRate * 2);
+        this.secondBuffer.order(ByteOrder.LITTLE_ENDIAN);
         this.sampleBytes = ByteBuffer.allocate(sampleRate * SAMPLE_SECONDS * 2);
         this.sampleBytes.order(ByteOrder.LITTLE_ENDIAN);
     }
@@ -144,11 +109,10 @@ public class SineWave16Generator implements Runnable {
     public void run() {
         try {
             secondBuffer.clear();
-            writeSerializedAudioSampleObject(secondBuffer, s);
+            writeAudioSample(secondBuffer, s);
             secondBuffer.flip();
-            CompletableFuture<Integer> published = connection.publish(new MqttMessage("TEST", secondBuffer.array(), QualityOfService.AT_LEAST_ONCE, false));
-            int messageNum = published.get();
-            System.out.println("published message " + messageNum + " to TEST topic.");
+            AudioSample sample = new AudioSample(id, System.currentTimeMillis(), secondBuffer.array());
+            map.put(sample.getId(), sample);
 
             if (s < SAMPLE_SECONDS) {
                 writeAudioSample(sampleBytes, s);

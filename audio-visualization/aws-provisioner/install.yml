@@ -1,0 +1,41 @@
+---
+- hosts: all
+  roles:
+    - cloudalchemy.prometheus
+  vars:
+    ansible_ssh_user: ec2-user
+  tasks:
+    - name: add Grafana repo 
+      become: yes
+      yum_repository: 
+        name: grafana
+        description: Grafana Enterprise
+        baseurl: https://packages.grafana.com/enterprise/rpm
+        repo_gpgcheck: yes
+        gpgcheck: yes 
+        gpgkey: https://packages.grafana.com/gpg.key
+        sslverify: yes
+        sslcacert: /etc/pki/tls/certs/ca-bundle.crt
+        enabled: yes
+
+    - name: install packages
+      become: yes
+      yum:
+        name:
+          - grafana-enterprise
+          - java-11-amazon-corretto-headless 
+        state:
+          present 
+
+    - name: Reload systemctl daemon 
+      become: yes 
+      command: systemctl daemon-reload 
+
+    - name: start Grafana Server 
+      become: yes 
+      command: systemctl start grafana-server 
+
+    - name: permanently enable Grafana Server 
+      become: yes 
+      command: systemctl enable grafana-server 
+        
