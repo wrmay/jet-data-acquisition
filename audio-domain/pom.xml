@@ -5,55 +5,17 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.sorintlab</groupId>
-  <artifactId>jet-audio-monitor</artifactId>
+  <artifactId>audio-domain</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>jet-audio-monitor</name>
+  <name>audio-domain</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
-
-  <dependencies>
-    <!-- generated grpc stubs for audio processor service -->
-    <dependency>
-      <groupId>com.sorintlab</groupId>
-      <artifactId>audio-processing-service</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-    <!-- contains AudioSample type -->
-    <dependency>
-      <groupId>com.sorintlab</groupId>
-      <artifactId>audio-domain</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-    <!-- Hazelcast Jet -->
-    <dependency>
-      <groupId>com.hazelcast.jet</groupId>
-      <artifactId>hazelcast-jet</artifactId>
-      <version>4.5</version>
-    </dependency>
-    <dependency>
-      <groupId>com.hazelcast.jet</groupId>
-      <artifactId>hazelcast-jet-grpc</artifactId>
-      <version>4.5</version>
-    </dependency>
-    <!-- AWS MQTT client -->
-    <dependency>
-      <groupId>software.amazon.awssdk.iotdevicesdk</groupId>
-      <artifactId>aws-iot-device-sdk</artifactId>
-      <version>1.4.2</version>
-    </dependency>
-    <!-- ArgParse4J argument parsing utility -->
-    <dependency>
-      <groupId>net.sourceforge.argparse4j</groupId>
-      <artifactId>argparse4j</artifactId>
-      <version>0.8.1</version>
-    </dependency>
-  </dependencies>
 
   <build>
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
@@ -99,23 +61,5 @@
         </plugin>
       </plugins>
     </pluginManagement>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.2.4</version>
-        <configuration>
-          <createDependencyReducedPom>false</createDependencyReducedPom>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
   </build>
 </project>

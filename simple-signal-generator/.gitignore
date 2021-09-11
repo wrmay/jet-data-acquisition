@@ -1,3 +1,4 @@
+auth/
 target/
 .idea/
 *.iml

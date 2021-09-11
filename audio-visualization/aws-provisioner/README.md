@@ -8,7 +8,7 @@ Provisions a t3.micro in its own vpc on AWS.
 Install the ansible prometheus plugin: https://github.com/cloudalchemy/ansible-prometheus
 using ansible-galaxy
 
-This role will not work unless you also do the following:
+If running a recent MacOs, this role will not work unless you also do the following:
 - export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 - install gnu-tar (not just any tar!)
 
