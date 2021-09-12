@@ -1,0 +1,19 @@
+---
+RecipeFormatVersion: '2020-01-25'
+ComponentName: com.sorintlab.jet.audio.monitor
+ComponentVersion: '1.0.5'
+ComponentDescription: Jet Audio Processing Pipeline
+ComponentPublisher: Sorint.lab US
+ComponentConfiguration:
+  DefaultConfiguration: {}
+Manifests:
+  - Platform:
+      os: linux
+    Lifecycle:
+      Startup: 
+        Script: "bash {artifacts:decompressedPath}/jet-audio-monitor/greengrass_startup.sh"
+      Shutdown: 
+        Script: "bash {artifacts:decompressedPath}/jet-audio-monitor/greengrass_shutdown.sh"
+    Artifacts:
+      - URI: s3://greengrass-components-691990859209-us-east-2/com.sorintlab.jet.audio.monitor/1.0.5/jet-audio-monitor.zip
+        Unarchive: ZIP
