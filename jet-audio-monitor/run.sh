@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# example invocation
+
 java -Dhazelcast.config=../config/hazelcast.yaml \
 -cp target/jet-audio-monitor-1.0-SNAPSHOT.jar com.sorintlab.jet.data.acquisition.audio.MonitoringJob  \
 --audio-service-host localhost --audio-service-port 9091 \
