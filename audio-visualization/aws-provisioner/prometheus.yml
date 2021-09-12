@@ -1,0 +1,19 @@
+#
+# Ansible managed
+#
+# http://prometheus.io/docs/operating/configuration/
+
+global:
+  evaluation_interval: 15s
+  scrape_interval: 15s
+  scrape_timeout: 10s
+
+  external_labels:
+    environment: audio-processor
+
+scrape_configs:
+  - job_name: prometheus
+    scrape_interval: 5s
+    static_configs:
+    - targets:
+      - localhost:7070

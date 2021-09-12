@@ -2,6 +2,10 @@
 
 Provisions a t3.micro in its own vpc on AWS.
 
+# To Do
+Use some sort of process monitoring for the bridge so we know if its
+really up. (Monit, supervisord)
+
 # Setup #
 * Requires Ansible
 

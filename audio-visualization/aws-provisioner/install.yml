@@ -5,14 +5,20 @@
   vars:
     ansible_ssh_user: ec2-user
   tasks:
-    - name: add Grafana repo 
+    - name: upload Prometheus configuration file
       become: yes
-      yum_repository: 
+      copy:
+        src: prometheus.yml
+        dest: /etc/prometheus/prometheus.yml
+
+    - name: add Grafana repo
+      become: yes
+      yum_repository:
         name: grafana
         description: Grafana Enterprise
         baseurl: https://packages.grafana.com/enterprise/rpm
         repo_gpgcheck: yes
-        gpgcheck: yes 
+        gpgcheck: yes
         gpgkey: https://packages.grafana.com/gpg.key
         sslverify: yes
         sslcacert: /etc/pki/tls/certs/ca-bundle.crt
@@ -23,19 +29,39 @@
       yum:
         name:
           - grafana-enterprise
-          - java-11-amazon-corretto-headless 
+          - java-11-amazon-corretto-headless
         state:
-          present 
+          present
 
-    - name: Reload systemctl daemon 
-      become: yes 
-      command: systemctl daemon-reload 
+    - name: Reload systemctl daemon
+      become: yes
+      command: systemctl daemon-reload
 
-    - name: start Grafana Server 
-      become: yes 
-      command: systemctl start grafana-server 
+    - name: start Grafana Server
+      become: yes
+      command: systemctl start grafana-server
 
-    - name: permanently enable Grafana Server 
-      become: yes 
-      command: systemctl enable grafana-server 
-        
+    - name: permanently enable Grafana Server
+      become: yes
+      command: systemctl enable grafana-server
+
+    - name: upload MQTT Prometheus Bridge and related files
+      become: no
+      copy:
+        src: "{{ item }}"
+        dest: /home/ec2-user/
+      loop:
+        - ../target/audio-mqtt-prometheus-bridge-1.0-SNAPSHOT.jar
+        - auth/private.pem.key
+        - auth/certificate.pem.crt
+
+    - name: upload the launch script and make it executable
+      become: no
+      copy:
+        src: launch.sh
+        dest: /home/ec2-user/
+        mode: "744"
+
+    - name: Start the Bridge
+      become: no
+      shell: /home/ec2-user/launch.sh
