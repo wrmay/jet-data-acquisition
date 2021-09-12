@@ -2,4 +2,4 @@ auth/
 target/
 .idea/
 *.iml
-
+*.zip
