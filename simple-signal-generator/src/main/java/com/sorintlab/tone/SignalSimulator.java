@@ -27,6 +27,7 @@ public class SignalSimulator {
         parser.addArgument("--disableHazelcast").type(Boolean.class).required(false).setDefault(Boolean.FALSE)
                 .setConst(Boolean.TRUE).nargs("?").help("disable hazelcast connection for testing purposes");
         parser.addArgument("--generator-config").required(true).help("the path to a json file containing the signal generator configuration.");
+        parser.addArgument("--audio-sample-dir").required(false).help("if provided, audio samples will be written to this directory");
 
         Namespace ns = null;
         try {
@@ -38,6 +39,7 @@ public class SignalSimulator {
 
         boolean disableHazelcast = ns.getBoolean("disableHazelcast");
         String configFile = ns.getString("generator_config");
+        String sampleDir = ns.get("audio_sample_dir");
 
         HazelcastInstance hz = null;
         IMap<Integer, AudioSample> map = null;
@@ -59,6 +61,7 @@ public class SignalSimulator {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         for (SineWave16Generator generator: ss.generators){
             generator.setMap(map);
+            generator.setSampleDir(sampleDir);
             executor.scheduleAtFixedRate(generator, 0, 1, TimeUnit.SECONDS);
         }
 

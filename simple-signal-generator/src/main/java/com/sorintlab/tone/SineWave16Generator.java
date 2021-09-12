@@ -35,6 +35,11 @@ public class SineWave16Generator implements Runnable {
     @JsonIgnore
     private int s;
 
+    @JsonIgnore
+    private String sampleDir;
+
+    public void setSampleDir(String dir){ this.sampleDir = dir;}
+
     public void setId(int id) {
         this.id = id;
     }
@@ -114,20 +119,21 @@ public class SineWave16Generator implements Runnable {
             AudioSample sample = new AudioSample(id, System.currentTimeMillis(), secondBuffer.array());
             map.put(sample.getId(), sample);
 
-            if (s < SAMPLE_SECONDS) {
+            if (sampleDir != null && s < SAMPLE_SECONDS) {
                 writeAudioSample(sampleBytes, s);
             }
 
             s += 1;
 
-            if (s == SAMPLE_SECONDS) {
+            if (sampleDir != null && s == SAMPLE_SECONDS) {
                 sampleBytes.flip();
                 ByteArrayInputStream bis = new ByteArrayInputStream(sampleBytes.array());
                 AudioFormat audioFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, (float) sampleRate, 16,
                         1, 2, (float) sampleRate, false);
                 AudioInputStream ais = new AudioInputStream(bis, audioFormat, 5 * sampleRate);
 
-                File outFile = new File("sample_" + id + ".wav");
+                File outDir = new File(sampleDir);
+                File outFile = new File(outDir, "sample_" + id + ".wav");
                 try {
                     AudioSystem.write(ais, AudioFileFormat.Type.WAVE, outFile);
                     System.out.println("SAMPLE WRITTEN TO " + outFile.getAbsolutePath());
