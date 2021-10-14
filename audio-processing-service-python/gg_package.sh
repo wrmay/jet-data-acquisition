@@ -11,4 +11,4 @@ zip $SCRIPTDIR/audio_processor.zip \
     $SCRIPTDIR/greengrass_shutdown.sh \
     $SCRIPTDIR/requirements.txt 
 
-aws s3 cp $SCRIPTDIR/audio_processor.zip s3://greengrass-components-691990859209-us-east-2/audio_processor.zip 
+aws s3 cp $SCRIPTDIR/audio_processor.zip s3://${GG_S3_BUCKET}/com.sorintlab.audioprocessor.service/1.0.3/audio_processor.zip 

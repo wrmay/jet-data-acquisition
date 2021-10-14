@@ -8,5 +8,5 @@ zip $SCRIPTDIR/jet-audio-monitor.zip \
     $SCRIPTDIR/greengrass_startup.sh \
     $SCRIPTDIR/greengrass_shutdown.sh 
 
-aws s3 cp $SCRIPTDIR/jet-audio-monitor.zip s3://greengrass-components-691990859209-us-east-2/com.sorintlab.jet.audio.monitor/1.0.5/jet-audio-monitor.zip
+aws s3 cp $SCRIPTDIR/jet-audio-monitor.zip s3://${GG_S3_BUCKET}/com.sorintlab.jet.audio.monitor/1.0.7/jet-audio-monitor.zip
 
