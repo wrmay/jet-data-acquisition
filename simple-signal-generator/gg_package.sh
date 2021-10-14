@@ -10,5 +10,5 @@ zip $SCRIPTDIR/signal-emulator.zip \
     $SCRIPTDIR/HealthySignal.json \
     $SCRIPTDIR/UnhealthySignal.json 
 
-aws s3 cp $SCRIPTDIR/signal-emulator.zip s3://${GG_S3_BUCKET}/com.sorintlab.jet.audio.signal.emulator/1.0.4/signal-emulator.zip
+aws s3 cp $SCRIPTDIR/signal-emulator.zip s3://${GG_S3_BUCKET}/com.sorintlab.jet.audio.signal.emulator/1.0.5/signal-emulator.zip
 

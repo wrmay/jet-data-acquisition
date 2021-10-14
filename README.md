@@ -55,6 +55,7 @@ For help setting up the Rasberry Pi with ssh access, see  [this article](https:/
 
 - [ ] Install a jdk on the device.  For example: `sudo apt install default-jdk-headless `
 - [ ] Install "virtualenv" on the device: `sudo apt install virtualenv`
+- [ ] Install "libatlas" and headers on the device `sudo apt install libatlas-base-dev`. This is necessary in order for numpy to be installed on device. 
 - [ ] Navigate to the IoT section of the [AWS Console](https://console.aws.com/iot). On the left hand menu, select "Greengrass", "Core Devices" and click on "Set up one core device."
 
 ![Greengrass setup step 1](resources/gg_setup_1.jpg)
@@ -245,10 +246,34 @@ Now we will deploy the components to the "audiocap" group.
 
   ![Deployment 2](resources/deployment_2.png)
 
+- [ ] Click through until you are given an option to add components to the deployment. Add the following components to the deployment: `com.sorintlab.audioprocessor.service`,`com.sorintlab.jet.audio.monitor`, `com.sorintlab.jet.audio.signal.emulator.healthy`.
+
+  ![Revise Deployment](resources/revise_deployment.png)
+
+  This will take approximately 5 minutes to deploy. You can follow the deployment by logging onto the Raspberry Pi and watching the greengrass log: `sudo tail -f /greengrass/v2/logs/greengrass.log`.  Also, you can watch the deployment by selecting the device from the "Core devices" list and clicking on the "Deployments" tab.   When it is done, it will look like the image below.
+
+  ![deployed](resources/deployed.png)
+
+  Also, you can view the output from the audio processor component, which is written to `/tmp/jet-audio-monitor.log`. It should look similar to the sample below and it should be updated continuosly.
+
+  ```bash
+  20:56:58.425 [ INFO] [c.h.j.i.c.WriteLoggerP] [audio-monitor/loggerSink#0] Summary of 1 at t=1634241418352 rms volume: 10999
+  	Spectrum Components
+  	10999 @ 400Hz
+  	10999 @ 600Hz
+  
+  20:56:58.466 [ INFO] [c.h.j.i.c.WriteLoggerP] [audio-monitor/loggerSink#0] Summary of 2 at t=1634241418398 rms volume: 9617
+  	Spectrum Components
+  	10999 @ 400Hz
+  	7999 @ 800Hz
+  ```
+
 ##### Troubleshooting Tips
 
 - Start with the logs on the Raspberry Pi.  They are in  `/greengrass/v2/logs`
 - If you need to force Greengrass to run the deployment again, you can select the deployment in the console, click on "Revise", then click through all of the pages without changing anything.  This will trigger a new deployment. Note that changes to the recipe will also trigger a new deployment.
+
+
 
 ### Provision the Cloud Server for the Visualization Component and Deploy It
 

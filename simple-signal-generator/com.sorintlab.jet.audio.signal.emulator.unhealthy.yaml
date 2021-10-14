@@ -1,14 +1,14 @@
 ---
 RecipeFormatVersion: '2020-01-25'
 ComponentName: com.sorintlab.jet.audio.signal.emulator.unhealthy
-ComponentVersion: '1.0.4'
+ComponentVersion: '1.0.5'
 ComponentDescription: Audio Signal Emulator (Unhealthy)
 ComponentPublisher: Sorint.lab US
 ComponentConfiguration:
   DefaultConfiguration: {}
 ComponentDependencies:
   com.sorintlab.jet.audio.monitor:
-    VersionRequirement: ">=1.0.7"
+    VersionRequirement: ">=1.0.8"
 Manifests:
   - Platform:
       os: linux
@@ -18,5 +18,5 @@ Manifests:
       Shutdown: 
         Script: "bash {artifacts:decompressedPath}/signal-emulator/greengrass_shutdown.sh"
     Artifacts:
-      - URI: s3://GG_S3_BUCKET/com.sorintlab.jet.audio.signal.emulator/1.0.4/signal-emulator.zip
+      - URI: s3://GG_S3_BUCKET/com.sorintlab.jet.audio.signal.emulator/1.0.5/signal-emulator.zip
         Unarchive: ZIP
