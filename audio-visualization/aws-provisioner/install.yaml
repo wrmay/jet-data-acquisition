@@ -52,8 +52,7 @@
         dest: /home/ec2-user/
       loop:
         - ../target/audio-mqtt-prometheus-bridge-1.0-SNAPSHOT.jar
-        - auth/private.pem.key
-        - auth/certificate.pem.crt
+        - auth/
 
     - name: upload the launch script and make it executable
       become: no

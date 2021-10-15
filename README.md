@@ -1,3 +1,5 @@
+
+
 # Overview
 
 This project is an end to end implementation of an IoT data acquisition and processing solution.  It is based primarily on AWS IoT and serverless offerings.  Audio data consisting of 40kHz audio samples is processed on a a Raspberry Pi, summarized using FFT and sent over MQTT to services in the cloud where the data is stored and visualized. 
@@ -38,6 +40,8 @@ Before starting this walk through, you will need the following:
 - An AWS Account.  The storage and visualization functions are hosted in AWS and the project uses AWS IoT services for provisioning and management of the device as well as for transmitting data to the storage and visualization components.
 - For the local machine, you must meet the following criteria:
   - be able to build maven projects (including the ability to download dependencies from the internet).
+  - python3 is installed
+  - Ansible is installed
 
 ### Install and Configure the AWS CLI on Your Local Machine
 
@@ -146,6 +150,8 @@ export GG_S3_BUCKET=greengrass-components-999999999999-us-east-2
 ./simple-signal-generator/gg_package.sh
 ```
 
+### Grant Greengrass Core Devices Permission to Download the Components from S3
+
 - [ ] On the AWS Console, Navigate to the IAM Service and select "Policies" on the left side menu.  Click on "Create"
 
   ![Create Policy](resources/create_policy.png)
@@ -234,7 +240,7 @@ simple-signal-generator/com.sorintlab.jet.audio.signal.emulator.unhealthy.yaml
 
 You should now have 4 components listed in the Greegrass console.
 
-### Deploy the Components
+### Deploy the Greengrass Components
 
 Now we will deploy the components to the "audiocap" group.
 
@@ -273,101 +279,162 @@ Now we will deploy the components to the "audiocap" group.
 - Start with the logs on the Raspberry Pi.  They are in  `/greengrass/v2/logs`
 - If you need to force Greengrass to run the deployment again, you can select the deployment in the console, click on "Revise", then click through all of the pages without changing anything.  This will trigger a new deployment. Note that changes to the recipe will also trigger a new deployment.
 
+### Verify  Messages are Being Sent to the MQTT topic
 
+- [ ] In the AWS Console, navigate to "Test" on the left hand menu and subscribe to the "audio_summaries" topic.  You should start to see messages containing audio summaries.  Note that the messages are in a binary format so they will not display properly.
+
+  ![MQTT](resources/MQTT_Client.png)
+
+
+
+### Prepare Your AWS Account for Deployment of the Visualization Components
+
+- [ ] In the ec2-console, create a new key pair named "audio-processor" and save the private key file to your local machine.
+
+- [ ] You can either use your root user to provision the server or you can create another IAM user with more restricted access.  If you choose the latter, then grant the user the following privileges.
+
+  ```json
+      {
+          "Version": "2012-10-17",
+          "Statement": [
+              {
+                  "Action": [
+                      "ec2:*",
+                      "cloudformation:*",
+                      "elasticloadbalancing:*"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*"
+              }
+          ]
+      }
+  ```
+
+Detailed instructions for preparing your account can be found here: [AWS Setup](audio-visualization/aws-provisioner/AWS_Setup.docx). 
+
+### Set up the Local Machine
+
+- [ ] install gnu-tar (not just any tar!). On MacOS, that is `brew install gnu-tar`.
+- [ ] install the Cloudalchemy Prometheus Ansible role: `ansible-galaxy install cloudalchemy.prometheus`
+
+- [ ] install the "jinja2" and "boto3" packages for python3 - you can either install the packages directly or you can insall them in a virtual environment. The second option is shown below.
+
+  ```bash
+  cd audio-visualization/aws-provisioner
+  virtualenv -p /usr/bin/python3 venv
+  . venv/bin/activate
+  pip install boto3 jinja2
+  ```
+
+  
 
 ### Provision the Cloud Server for the Visualization Component and Deploy It
 
+These steps are performed on the local machine, not the Raspberry Pi.  The AWS provisioning system is a modified version of this open source project: https://github.com/wrmay/gem-ops-suite.  It provisions a single t3.micro ec2-instance in its own VPC and writes out an Ansible inventory file: `inventory.ini`.  The Ansible playbook, `install.yaml` can then be used to install Prometheus, Grafana and the MQTT-Prometheus bridge.
 
+- [ ] Figure out the ami id of the 64-bit x86, Amazon Linux HVM ami in the region where you want to launch your instance.  The best way to do this is using the "Lauch instances" functionality of the ec2 console as shown below.  Note: you do not need to actually launch an instance.
 
-### Install the python audio processor service
+- [ ] ![Select AMI 1](resources/select_ami_1.png)
 
-##### Create a Greengrass Component
+  ![Select AMI 2](resources/select_ami_2.png)
 
+- [ ] edit `audio-visualization/aws-provisioner/config/awscluster.json` , make sure that the "SSHKeyPairName" and "SSHKeyPath" are correct.  Change the "RegionName" setting to the name of the AWS region where you want to deploy the audio visualizer and change the "ImageId" to the ami identifier from the previous step.  See the example below:
 
+  ```json
+  {
+    "EnvironmentName" : "AudioProcessor",
+    "RegionName" : "us-east-2",
+    "SSHKeyPairName" : "audio-processor",
+    "SSHKeyPath": "audio-processor.pem",
+    "Servers" : [
+      {
+        "Name" : "audiovisualization",
+          "PrivateIP" : "192.168.1.101",
+          "AZ" : "A",
+          "InstanceType" : "t3.micro",
+          "Roles" : [],
+         	"ImageId" : "ami-00dfe2c7ce89a450b"
+      }
+    ]
+  }
+  ```
 
-Build and install the gRPC stubs.
+- [ ] Generate the definition and provision the server.
 
-```
-cd audio-processing-service-java
-mvn install
-cd ..
-```
+  ```bash
+  cd audio-visualization/aws-provisioner
+  python3 generateAWSCluster.py
+  ```
 
+  This will create a cloud formation template: `config/cloudformation.json`
 
-Build and install the signal generator.  Note that the "simple-signal-generator" project defines POJOs that are used by the Jet job.
+- [ ] Provision the cloud infrastructure: `python3 aws_provision.py`.  This will use cloud formation to provison the resources. An ansible inventory file will be written to `inventory.ini`. You should now be able to see the ec2 instance in the aws console as well as the cloud formation template.
 
-```
-cd simple-signal-generator
-mvn install
-cd ..
-```
+**Troubleshootint Tips**
 
-
-
-Build the Audio Monitor Jet job.
-
-```
-cd jet-audio-monitor
-mvn package
-cd ..
-```
-
-
-
-### Start Everything
-
-```
-docker-compose up -d
-```
-
-To start a multi-node Jet cluster, use the "scale" option as shown below.
-
-```
-docker-compose up -d --scale jet=2
-```
-
-To view the logs, use `docker-compose logs --follow`. Press ctrl-c to exit.
+- If the last step fails, try running `python3 aws_provision.json` again.  
 
 
 
-This will start Jet, the signal generator, the Hazelcast Management Center , the python audio processor gRPC service , the Prometheus time series DB and Grafana.  It does not deploy the Jet job.
+### Create a Certificate to Enable the Visualization Layer to Consume MQTT Messages
+
+- [ ] Navigate to "Certificates" in the AWS IoT Service console and click "Create"
+
+![Create Cert 1](resources/create_cert_1.png)
+
+- [ ] Choose "One-click certificate creation"
+
+![Create Cert 2](resources/create_cert_2.png)
+
+- [ ] Download the certificate and private key and then click "Attach a policy"
+
+![Create Cert 3](resources/create_cert_3.png)
+
+- [ ] Attach the GreengrassV2IoTThingPolicy
+
+![Create Cert 4](resources/create_cert_4.png)
+
+- [ ] Activate the certificate
+
+![Create Cert 5](resources/create_cert_5.png)
 
 
 
-Observe that the signal generator writes sample wav files into the "logs" folder.  This allows you to listen to the audio signals if desired.
+### Install Grafana, Prometheus and the MQTT Prometheus Bridge
+
+- [ ] Edit `audio-visualization/aws-provisioner/launch.sh`.  Set the "--aws-mqtt-endpoint" to the same value used in the "Configure the MQTT connection for the jet-audio-monitor component" section above.
+
+- [ ] Save the private key file and cert from the previous step into the `audio-visualization/aws-provisioner/auth` folder.  Edit the launch script to specify the correct name for both files.
+
+  ``` bash
+  nohup java -cp audio-mqtt-prometheus-bridge-1.0-SNAPSHOT.jar com.sorintlab.jet.data.acquisition.audio.MQTTPrometheusBridge \
+  	--aws-mqtt-endpoint >>> a17sav9lrv8l6k-ats.iot.us-east-2.amazonaws.com <<< \
+  	--aws-mqtt-client-id prometheus \
+  	--aws-mqtt-topic audio_summaries \
+  	--aws-client-cert-file >>> 3db4a06f43-certificate.pem.crt <<< \
+          --aws-client-private-key-file >>> 3db4a06f43-private.pem.key <<<	< /dev/null  \
+  				> /tmp/mqtt-promethus.log 2>&1 &
+  
+  ```
+
+   
+
+- [ ] Run the install Ansible playbook to install all of the visualization components.
+
+  ```bash
+  # set this environment variable on recent-model Macs
+  export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+  
+  ansible-playbook -i inventory.ini --key-file audio-processor.pem install.yaml
+  ```
+
+  
+
+### Set up Grafana 
+
+The file `inventory.ini` contains the public IP addres of the audio visualization server.  Grafana is running on port 3000 on that server. Use  a browser to access port 3000 on that server and follow the instructions below.
 
 
-
-The Hazelcast Management Center can be accessed on Port 8080.  The following images show how to log in and view the cluster.
-
-In a browser, go to "localhost:8080".
-
-![](screenshots/Snapshot%204.png)
-![](screenshots/Snapshot%205.png)
-![](screenshots/Snapshot%2010.png)
-![](screenshots/Snapshot%207.png)
-![](screenshots/Snapshot%208.png)
-![](screenshots/Snapshot%209.png)
-
-
-
-### Submit the Job
-
-```
-docker-compose run submitjob
-```
-
-
-
-You should now be able to see the running Jet job in the Management Center as show below.
-
-![](screenshots/Snapshot%2012.png)
-![](screenshots/Snapshot%2013.png)
-![](screenshots/Snapshot%2014.png)
-
-### View the results in Grafana
-
-Grafana will need to be configured.  Go to localhost:3000 in the browser and follow the instructions below.
 
 ![](screenshots/Snapshot%2015.png)
 ![](screenshots/Snapshot%2016.png)
@@ -376,7 +443,9 @@ Grafana will need to be configured.  Go to localhost:3000 in the browser and fol
 ![](screenshots/Snapshot%2019.png)
 ![](screenshots/Snapshot%2020.png)
 ![](screenshots/Snapshot%2021.png)
-![](screenshots/Snapshot%2022.png)
+
+If everything is working, you should see something like the image below.
+
 ![](screenshots/Snapshot%2023.png)
 
 
@@ -385,34 +454,7 @@ Grafana will need to be configured.  Go to localhost:3000 in the browser and fol
 
 Now we can change the signal generator and see the changes reflected in the resulting graphs. 
 
-First change the configuration file, `config/SignalSimulator.json`.   In the example below, a 3rd component is added to source 2.  _Be sure that the `phase`, `amplitude`, and `frequency` arrays all have the same number of entries!_
-
-```
-{
-    "generators": [
-        {
-            "id" : 1,
-            "amplitude": [11000,11000,11000],
-            "frequency": [1024,9000,8000],
-            "sampleRate": 200000,
-            "phase": [0,0,0]
-        },
-        {
-            "id" : 2,
-            "amplitude": [11000,8000,8000],
-            "frequency": [8000,4000,6000],
-            "sampleRate": 200000,
-            "phase": [0,0,0]
-        }
-    ]
-}
-```
-
-Now restart the signal generator.
-
-```
-docker-compose restart signalgen
-```
+To do this, simply revise the "for audiocap" deployment in the IoT console.  Remove the healthy signal generator and add the unhealthy signal generator.
 
 After a while, you should see a new line appear on the graph for source 2.
 
@@ -420,11 +462,18 @@ After a while, you should see a new line appear on the graph for source 2.
 
 
 
-### Stop Everything
+### Clean Up
 
+To clean up the AWS resources related to the audio visualization, you can either undeploy the CloudFormation template or use the "aws_destroy.py" script.
+
+```bash
+cd audio_visualization/aws-provisioner
+python3 aws_destroy.py 
 ```
-docker-compose down
-```
+
+
+
+To stop the audio-processor from running on your Raspberry Pi, you can simply revise  the deployment and remove the components.
 
 
 
@@ -433,24 +482,6 @@ This concludes the walk-through.
 
 
 # Developer Information
-
-
-
-### Project Contents
-
-| File or Folder                  | Description                                                  |
-| ------------------------------- | ------------------------------------------------------------ |
-| audio-processing-service-java   | The java stubs and skeletons required to call the audio processing service from Jet. All files in this folder are generated from the protocol definition. |
-| audio-processing-service-python | All of the code necessary to run the python audio processing service.  All of the logic is in "audio_processor.py".  The other python files are generated from the protocol definition.  Dockerfile contains the instructions for building a Docker image that runs the audio processor. |
-| config                          | All of the confguration files including "SignalSimulator.json" which is used by the signal generator, "hazelcast-client.xml" which controls how the signal generator connects to the Jet cluster, "hazelcast.yaml", which contains the configuration for the "audio" map, which acts a bridge between Jet and the signal simulator, and "prometheus.yaml", which conains the information necessary for the Prometheus scraper to find the Jet instances. |
-| jet-audio-monitor               | The Jet job definition.                                      |
-| jetgrpc                         | Contains the configuration and Docker file necessary to build a grpc enabled Hazelcast Jet image. |
-| logs                            | The location to which the signal generator writes sample .wav files. |
-| screenshots                     | Part of this documentation.                                  |
-| simple-signal-generator         | The signal generator java project.  Note the signal generator is a Hazelcast client. |
-| test-code                       | Code that was useful for testing and developing this project. |
-| audio_processor.proto           | Protobuf definition of the interface provided by the audio processor service. |
-| compose.yaml                    | Instructions to "docker-compose" for running this project.   |
 
 
 
